@@ -197,24 +197,25 @@
         /* Analog VU Meter */
         .vu-meter-container {
             display: flex;
-            gap: 2px;
-            height: 14px;
+            gap: 4px;
+            height: 20px;
             align-items: flex-end;
             margin-top: 10px;
-            padding-top: 4px;
+            padding-top: 6px;
             border-top: 1px solid #111;
         }
         .vu-bar {
             flex: 1;
             background: #1a1a1a;
             height: 2px;
-            transition: height 0.08s ease; 
+            transition: height 0.05s ease-out; 
         }
         .vu-bar.active {
-            background: #444;
+            background: #555;
         }
         .vu-bar.peak {
             background: var(--crimson);
+            box-shadow: 0 0 4px var(--crimson);
         }
     </style>
 </head>
@@ -396,14 +397,17 @@
                 source = audioCtx.createMediaElementSource(mainAudio);
                 source.connect(analyser);
                 analyser.connect(audioCtx.destination);
+                // Lower FFT size for a more "chunky" blocky feel with fewer bars
                 analyser.fftSize = 64; 
+                analyser.smoothingTimeConstant = 0.75;
                 const bufferLength = analyser.frequencyBinCount;
                 dataArray = new Uint8Array(bufferLength);
                 isAudioContextInitialized = true;
             } catch(e) { console.warn("Audio Context blocked or failed."); }
         }
 
-        const numBars = 15;
+        // Updated Visualizer: fewer, wider bars focused on a narrower range
+        const numBars = 8;
         const bars = [];
         for (let i = 0; i < numBars; i++) {
             const bar = document.createElement('div');
@@ -415,13 +419,23 @@
         function updateVUMeter() {
             if (isAudioContextInitialized && !mainAudio.paused) {
                 analyser.getByteFrequencyData(dataArray);
+                
+                // We focus on the first few bins (lower frequencies) for more punchy movement
+                // and skip the high frequency noise that often stays static
                 for (let i = 0; i < numBars; i++) {
                     const bar = bars[i];
-                    const val = dataArray[i] || 0;
-                    const h = Math.max(2, (val / 255) * 14);
-                    bar.style.height = h + 'px';
-                    if (val > 40) bar.classList.add('active'); else bar.classList.remove('active');
-                    if (val > 210 && i > 10) bar.classList.add('peak'); else bar.classList.remove('peak');
+                    // Using a narrowed range of the dataArray (low-to-mid)
+                    const val = dataArray[i + 2] || 0; 
+                    
+                    // Boost sensitivity so movement is more drastic
+                    const boost = 1.25;
+                    const h = Math.max(2, (val / 255) * 20 * boost);
+                    
+                    bar.style.height = Math.min(20, h) + 'px';
+                    
+                    if (val > 30) bar.classList.add('active'); else bar.classList.remove('active');
+                    // Peak indicator logic
+                    if (val > 200) bar.classList.add('peak'); else bar.classList.remove('peak');
                 }
             } else {
                 bars.forEach(bar => {
