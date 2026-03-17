@@ -197,7 +197,7 @@
             flex: 1;
             background: #1a1a1a;
             height: 2px;
-            transition: height 0.08s ease; /* Slightly slower for smoother feel */
+            transition: height 0.08s ease; 
         }
         .vu-bar.active {
             background: #444;
@@ -373,7 +373,6 @@
         let currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
         let siteBootTime = Date.now();
         
-        // Web Audio API State
         let audioCtx, analyser, source, dataArray;
         let isAudioContextInitialized = false;
 
@@ -392,7 +391,6 @@
             } catch(e) { console.warn("Audio Context blocked or failed."); }
         }
 
-        // ================= ANALOG VU METER =================
         const numBars = 15;
         const bars = [];
         for (let i = 0; i < numBars; i++) {
@@ -423,7 +421,6 @@
         }
         updateVUMeter();
 
-        // ================= TERMINAL SHELL LOGIC =================
         const consoleContainer = document.getElementById('console-container');
         const consoleInput = document.getElementById('console-input');
         const consoleOutput = document.getElementById('console-output');
@@ -438,6 +435,7 @@
             const line = document.createElement('div');
             line.style.color = color;
             line.style.marginBottom = "2px";
+            line.style.whiteSpace = "pre-wrap"; 
             line.innerText = text;
             consoleOutput.appendChild(line);
             consoleOutput.scrollTop = consoleOutput.scrollHeight;
@@ -455,17 +453,41 @@
         consoleInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const rawInput = consoleInput.value.trim();
-                const cmd = rawInput.toLowerCase().split(' ')[0];
+                const parts = rawInput.toLowerCase().split(' ');
+                const cmd = parts[0];
+                const arg = parts[1];
+                
                 consoleInput.value = '';
                 writeToConsole(`> ${rawInput.toUpperCase()}`, "#aaa");
-                if(cmd === 'help') writeToConsole("LS, READ, WHOAMI, EXIT");
-                else if(cmd === 'ls') Object.keys(virtualFiles).forEach(f => writeToConsole(` - ${f}`));
-                else if(cmd === 'exit') consoleContainer.style.display = 'none';
-                else writeToConsole("ERR: CMD NOT FOUND");
+
+                if(cmd === 'help') {
+                    writeToConsole("AVAILABLE CMDS: LS, READ [FILE], WHOAMI, EXIT");
+                }
+                else if(cmd === 'ls') {
+                    Object.keys(virtualFiles).forEach(f => writeToConsole(` - ${f}`, "#888"));
+                }
+                else if(cmd === 'read') {
+                    if (!arg) {
+                        writeToConsole("ERR: NO FILE SPECIFIED. USAGE: READ [FILENAME]");
+                    } else if (virtualFiles[arg]) {
+                        writeToConsole(`\n--- ${arg.toUpperCase()} ---\n${virtualFiles[arg]}\n`, "var(--crimson)");
+                    } else {
+                        writeToConsole(`ERR: FILE '${arg}' NOT FOUND.`);
+                    }
+                }
+                else if(cmd === 'whoami') {
+                    writeToConsole("SESSION_ID: " + Math.random().toString(16).substring(2, 10).toUpperCase());
+                    writeToConsole("IDENTITY: UNKNOWN_GUEST_01\nAUTH_LEVEL: RESTRICTED\nWARNING: YOU ARE BEING WATCHED.");
+                }
+                else if(cmd === 'exit') {
+                    consoleContainer.style.display = 'none';
+                }
+                else {
+                    writeToConsole("ERR: CMD NOT FOUND. TYPE 'HELP' FOR LIST.");
+                }
             }
         });
 
-        // ================= LOG SYSTEM =================
         function addLog(text, color = null) {
             const log = document.createElement('div');
             log.innerText = `> ${text}`;
@@ -478,27 +500,34 @@
             "KERNEL_SYNC_OK", "IO_PORT_CLEARED", "TEMP_NOMINAL: 34C",
             "PACKET_DUMP_COMPLETE", "CACHE_CLEANUP_SUCESS", "PROXY_ROTATED",
             "ENCRYPTION_LAYER_STABLE", "AUTH_KEY_REGENERATED", "UPLINK_ENCRYPTED",
-            "HEARTBEAT_SIGNAL_STABLE"
+            "HEARTBEAT_SIGNAL_STABLE", "MEMORY_LEAK_IN_SECTOR_7", "EYE_TRACKING_ACTIVE",
+            "VOICE_DATA_RECOVERED", "GEOLOCATION_PINNED", "ACCESS_DENIED_BY_ROOT",
+            "REMOTE_SHELL_ESTABLISHED"
         ];
 
         function runRandomDiag() {
             const msg = diagMessages[Math.floor(Math.random() * diagMessages.length)];
             
-            // Trigger log
             addLog(msg);
 
-            // Special pairing: If Heartbeat shows up, follow with User Detected
+            // FORCE CHAINED EVENT: Heartbeat always followed by Unknown User in Red
             if (msg === "HEARTBEAT_SIGNAL_STABLE") {
                 setTimeout(() => {
                     addLog("UNKNOWN_USER_DETECTED", "#991b1b");
                 }, 1500);
             }
+            
+            // Random chance for a secondary glitch message
+            if (Math.random() > 0.8) {
+                setTimeout(() => {
+                    addLog("ERR_SYSTEM_FATAL_0X000", "#ff0000");
+                }, 800);
+            }
 
-            // Schedule next run
-            setTimeout(runRandomDiag, 3000 + Math.random() * 5000);
+            // Scheduling next run with more aggressive frequency
+            setTimeout(runRandomDiag, 1500 + Math.random() * 4000);
         }
 
-        // ================= SITE CORE =================
         function runPostSequence() {
             const screen = document.getElementById('boot-screen');
             let count = 0;
@@ -583,7 +612,7 @@
             setInterval(() => {
                 const elapsed = Math.floor((Date.now() - siteBootTime) / 1000);
                 document.getElementById('uptime').innerText = `UP: ${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
-                document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 8 + 1).toString().padStart(2, '0')}%`;
+                document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 15 + 5).toString().padStart(2, '0')}%`;
             }, 1000);
         });
     </script>
