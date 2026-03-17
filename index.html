@@ -290,7 +290,7 @@
             { name: "JFMAMJJASOND", url: "audio/03 JFMAMJJASOND.mp3" },
             { name: "SO MUCH MORE", url: "audio/03. So Much More (Prod. By Alchemist).mp3" },
             { name: "ALLEN IVERSON", url: "audio/04. Allen Iverson (Feat. Heem Stogied) (Prod. By Earl Sweatshirt).mp3" },
-            { name: "WINGARIUM LEVIOSA", url: "audio/06 Wingarium Leviosa (Advanced Listening).mp3" },
+            { name: "WINGARIUM LEVIOSA (ADVANCED LISTENING)", url: "audio/06 Wingarium Leviosa (Advanced Listening).mp3" },
             { name: "DNA SWAB", url: "audio/06. DNA Swab (Feat. Tha God Fahim) (Prod. By Earl Sweatshirt).mp3" },
             { name: "MAC FLURRIES", url: "audio/08. Mac Flurries (Feat. Heem Stogied) (Prod. By Sage Elsesser).mp3" },
             { name: "LONG TIME", url: "audio/10. Long Time (Prod. By Alchemist).mp3" },
@@ -311,11 +311,11 @@
             { name: "IN CASE YOU FORGOT", url: "audio/Roc Marciano - In Case You Forgot.mp3" },
             { name: "RUN-INS", url: "audio/04 - Run-Ins.mp3" },
             { name: "WILLIE LLOYD (INST)", url: "audio/07. Willie Lloyd (Instrumental).mp3" },
-            { name: "NO WINDOW TINTS (INST)", url: "audio/06. No Window Tints (Instrumental).mp3" },
+            { name: "NO WINDOW TINTS (INST)", url: "audio/06 No Window Tints (Instrumental).mp3" },
             { name: "GAMEBREAKER", url: "audio/Domo Genesis - Gamebreaker ft. Earl Sweatshirt.mp3" },
             { name: "RANDY THE MUSICAL", url: "audio/Action Bronson - Randy The Musical.mp3" },
             { name: "DA COLDEST", url: "audio/01 Da Coldest-HHB.mp3" },
-            { name: "HOOVER STREET", url: "audio/Schoolboy Q - Hoover Street (Original Version).mp3" },
+            { name: "HOOVER STREET (OG VERSION)", url: "audio/Schoolboy Q - Hoover Street (Original Version).mp3" },
             { name: "MASSACURES", url: "audio/06. Massacures.mp3" },
             { name: "KNIFE CONFRONTATION", url: "audio/13 - Knife Confrontation.mp3" },
             { name: "$111.11", url: "audio/02. $111.11 feat. Mach-Hommy [Prod. Camoflauge Monk].mp3" },
@@ -417,7 +417,8 @@
         };
 
         mainAudio.onerror = () => {
-            console.error("Error loading audio track:", audioTracks[currentTrackIndex].url);
+            const currentTrack = audioTracks[currentTrackIndex];
+            console.error(`AUDIO ERROR: Failed to load "${currentTrack.name}" at path: ${currentTrack.url}`);
             if (audioStatusText) audioStatusText.innerText = "Error Loading";
         };
 
