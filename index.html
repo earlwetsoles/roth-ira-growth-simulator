@@ -161,9 +161,9 @@
     <div class="widget-box audio-box" id="audio-widget">
         <div class="widget-header">
             <span class="widget-title">AUDIO_MODULE</span>
-            <span id="track-status"></span> <!-- Removed shuffle_mode text -->
+            <span id="track-status" class="text-[7px] opacity-30"></span> 
         </div>
-        <div class="mb-1 truncate text-white opacity-80" id="track-name">INITIALIZING...</div>
+        <div class="mb-1 truncate text-white opacity-80" id="track-name">READY_TO_BOOT</div>
         <div class="progress-container" id="progress-area">
             <div class="progress-bar" id="progress-bar"></div>
         </div>
@@ -173,8 +173,8 @@
         </div>
         <div class="audio-controls">
             <div class="flex items-center gap-2">
-                <div class="w-1.5 h-1.5 bg-red-800 rounded-full animate-pulse"></div>
-                <span class="text-[7px] uppercase tracking-tighter opacity-50">Auto-Shuffle active</span>
+                <div id="audio-status-dot" class="w-1.5 h-1.5 bg-red-800 rounded-full animate-pulse"></div>
+                <span id="audio-status-text" class="text-[7px] uppercase tracking-tighter opacity-50">Safe Mode Loaded</span>
             </div>
             <div class="flex gap-4">
                 <button class="audio-btn font-bold text-white" id="play-btn">PLAY</button>
@@ -214,7 +214,6 @@
             <div class="group typewriter-line" data-delay="4000">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">04 / Network</span>
                 <div class="flex flex-wrap items-center gap-6">
-                    <!-- Alphabetized Links -->
                     <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm">CSFloat</a>
                     <a href="https://letterboxd.com/Jiwt" target="_blank" class="link-item py-2 text-sm">Letterboxd</a>
                     <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm">LighterPack</a>
@@ -232,19 +231,18 @@
     <script>
         const bootData = [
             "Initializing BIOS...", "Verifying CPU...", "Memory Test: 16384MB OK",
-            "SATA Primary Master: 500GB SSD", "SATA Secondary Master: NONE",
-            "USB Controller Initialized...", "Network Card Found [MAC: 00:1A:2B:3C:4D:5E]",
-            "DHCP Handshake... OK", "Loading Kernel ARCH_OS_01...", "Mounting /dev/sda1...",
-            "Setting up Security Protocols...", "Encryption Layer: AES-256 Enabled",
-            "Checking Archive Integrity...", "Checksum 0xAF43... PASSED",
-            "Loading UI Assets...", "Starting Media Engine...", "Redirecting I/O...",
+            "SATA Primary Master: 500GB SSD", "USB Controller Initialized...",
+            "Network Card Found [MAC: 00:1A:2B:3C:4D:5E]", "DHCP Handshake... OK",
+            "Loading Kernel ARCH_OS_01...", "Mounting /dev/sda1...",
+            "Encryption Layer: AES-256 Enabled", "Checking Archive Integrity...",
+            "Checksum 0xAF43... PASSED", "Loading UI Assets...",
+            "Starting Media Engine...", "Redirecting I/O...",
             "SUCCESS: System Boot Sequence Complete."
         ];
 
         function runPostSequence() {
             const screen = document.getElementById('boot-screen');
             let count = 0;
-            
             const interval = setInterval(() => {
                 if (count < bootData.length) {
                     const line = document.createElement('div');
@@ -263,35 +261,38 @@
         function revealSite() {
             const screen = document.getElementById('boot-screen');
             const main = document.getElementById('app-content');
-            
             screen.style.opacity = '0';
             setTimeout(() => {
                 screen.remove();
                 document.body.style.overflow = 'auto';
                 main.style.opacity = '1';
-                
                 document.querySelectorAll('.typewriter-line').forEach(line => {
                     setTimeout(() => line.classList.add('typing'), parseInt(line.getAttribute('data-delay')));
                 });
-
                 document.getElementById('diag-widget').style.opacity = '1';
                 document.getElementById('audio-widget').style.opacity = '1';
             }, 400);
         }
 
-        /** Media Logic **/
+        /** * MUSIC ADDITION TEMPLATE (COPY AND PASTE TO AI):
+         * "Add these songs to the player:
+         * 1. [Song Title] - [filename.mp3]
+         * 2. [Song Title] - [filename.mp3]"
+         **/
+        
         const audioTracks = [
-            { name: "JFMAMJJASOND", url: "audio/03 JFMAMJJASOND.mp3" }, 
-            { name: "A PARTRIDGE & A PEAR TREE", url: "audio/02. A Partridge & A Pear Tree.mp3" }, 
-            { name: "WINGARIUM LEVIOSA", url: "audio/06 Wingarium Leviosa.mp3" }, 
-            { name: "DNA SWAB", url: "audio/06. DNA Swab.mp3" }, 
-            { name: "LONG TIME", url: "audio/10. Long Time.mp3" }, 
-            { name: "MARIO LEMIEUXX", url: "audio/01 Mario Lemieuxx.mp3" }, 
-            { name: "RALE BULGARIAN", url: "audio/01. Rale Bulgarian.mp3" }, 
-            { name: "FROMAJ", url: "audio/02 Fromaj.mp3" }
+            { name: "MARIO LEMIEUXX", url: "audio/01 Mario Lemieuxx.mp3" },
+            { name: "RALE BULGARIAN", url: "audio/01. Rale Bulgarian.mp3" },
+            { name: "A PARTRIDGE & A PEAR TREE", url: "audio/02. A Partridge & A Pear Tree.mp3" },
+            { name: "FROMAJ", url: "audio/02 Fromaj.mp3" },
+            { name: "JFMAMJJASOND", url: "audio/03 JFMAMJJASOND.mp3" },
+            { name: "WINGARIUM LEVIOSA", url: "audio/06 Wingarium Leviosa.mp3" },
+            { name: "DNA SWAB", url: "audio/06. DNA Swab.mp3" },
+            { name: "LONG TIME", url: "audio/10. Long Time.mp3" },
+            { name: "Allen Iverson", url: "audio/04. Allen Iverson (Feat. Heem Stogied) (Prod. By Earl Sweatshirt).mp3" },
         ];
 
-        let currentTrackIndex = -1;
+        let currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
         const trackName = document.getElementById('track-name');
@@ -299,6 +300,7 @@
         const currentTimeDisplay = document.getElementById('current-time');
         const durationDisplay = document.getElementById('total-duration');
         const muteBtn = document.getElementById('mute-btn');
+        const audioStatusText = document.getElementById('audio-status-text');
 
         function formatTime(seconds) {
             if (isNaN(seconds)) return "0:00";
@@ -307,37 +309,32 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        function playRandomTrack() {
-            let nextIndex;
-            do {
-                nextIndex = Math.floor(Math.random() * audioTracks.length);
-            } while (nextIndex === currentTrackIndex && audioTracks.length > 1);
-            
-            currentTrackIndex = nextIndex;
-            const track = audioTracks[currentTrackIndex];
-            
-            // Ensure URL is relative to where the HTML is served
+        function loadTrack(index) {
+            const track = audioTracks[index];
+            if (!track) return;
             mainAudio.src = track.url;
             trackName.innerText = track.name.toUpperCase();
             mainAudio.load();
+            audioStatusText.innerText = "Syncing...";
         }
 
         playBtn.onclick = async () => {
             if (mainAudio.paused) {
                 try {
+                    if (!mainAudio.src || mainAudio.src === window.location.href) {
+                        loadTrack(currentTrackIndex);
+                    }
                     await mainAudio.play();
                     playBtn.innerText = "PAUSE";
+                    audioStatusText.innerText = "Streaming";
                 } catch (e) {
-                    // Browser likely blocked auto-play; log detail for debugging
-                    console.error("Audio Playback Failed. Details:", e);
-                    // Force a reload of the current src just in case
-                    mainAudio.load();
-                    await mainAudio.play();
-                    playBtn.innerText = "PAUSE";
+                    console.error("Playback block:", e);
+                    audioStatusText.innerText = "Error: Click Play";
                 }
             } else {
                 mainAudio.pause();
                 playBtn.innerText = "PLAY";
+                audioStatusText.innerText = "Paused";
             }
         };
 
@@ -345,9 +342,6 @@
             mainAudio.muted = !mainAudio.muted;
             muteBtn.innerText = mainAudio.muted ? "UNMUTE" : "MUTE";
         };
-
-        mainAudio.onplay = () => playBtn.innerText = "PAUSE";
-        mainAudio.onpause = () => playBtn.innerText = "PLAY";
 
         mainAudio.ontimeupdate = () => {
             if (isNaN(mainAudio.duration)) return;
@@ -358,8 +352,12 @@
         };
 
         mainAudio.onended = () => {
-            playRandomTrack();
-            mainAudio.play().catch(e => console.error("Shuffle transition failed:", e));
+            currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
+            loadTrack(currentTrackIndex);
+            mainAudio.play().catch(() => {
+                playBtn.innerText = "PLAY";
+                audioStatusText.innerText = "Queue Halted";
+            });
         };
 
         document.getElementById('progress-area').onclick = (e) => {
@@ -371,10 +369,9 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             runPostSequence();
-            // Start with a random track selection
-            playRandomTrack();
+            loadTrack(currentTrackIndex);
 
-            // Background Diag simulation
+            // Diag simulation
             let startTime = Date.now();
             setInterval(() => {
                 const elapsed = Math.floor((Date.now() - startTime) / 1000);
