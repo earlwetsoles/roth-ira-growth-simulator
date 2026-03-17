@@ -31,7 +31,6 @@
             z-index: 100;
             pointer-events: none;
             opacity: 0.3;
-            transition: opacity 0.1s ease; /* For audio reactivity */
         }
 
         /* Rapid POST Sequence Overlay */
@@ -113,7 +112,7 @@
                 bottom: 1rem;
             }
             .diag-box { left: 1rem; height: 110px; }
-            .audio-box { right: 1rem; height: 110px; }
+            .audio-box { right: 1rem; height: 130px; }
             #diag-logs { height: 40px !important; }
         }
 
@@ -148,7 +147,7 @@
         }
 
         /* Glitch styles */
-        .glitch-text {
+        .glitch-active {
             color: var(--glitch-color);
             text-shadow: 1px 0px 4px rgba(255,0,0,0.5);
         }
@@ -176,6 +175,29 @@
             flex-grow: 1;
             margin-left: 10px;
             font-family: 'Space Mono', monospace;
+        }
+
+        /* Analog VU Meter */
+        .vu-meter-container {
+            display: flex;
+            gap: 2px;
+            height: 12px;
+            align-items: flex-end;
+            margin-top: 10px;
+            padding-top: 4px;
+            border-top: 1px solid #111;
+        }
+        .vu-bar {
+            flex: 1;
+            background: #1a1a1a;
+            height: 2px;
+            transition: height 0.15s ease, background 0.15s ease;
+        }
+        .vu-bar.active {
+            background: #444;
+        }
+        .vu-bar.peak {
+            background: var(--crimson);
         }
     </style>
 </head>
@@ -223,6 +245,12 @@
                 <button class="audio-btn hidden md:block" id="mute-btn">MUTE</button>
             </div>
         </div>
+
+        <!-- Analog VU Meter Widget -->
+        <div class="vu-meter-container" id="vu-meter">
+            <!-- Bars generated via JS -->
+        </div>
+
         <audio id="main-audio" preload="auto" crossOrigin="anonymous"></audio>
     </div>
 
@@ -337,18 +365,15 @@
         const muteBtn = document.getElementById('mute-btn');
         const audioStatusText = document.getElementById('audio-status-text');
         const diagLogs = document.getElementById('diag-logs');
-        const scanline = document.getElementById('scanline');
-        const headerPulse = document.getElementById('header-pulse');
+        const vuContainer = document.getElementById('vu-meter');
 
         let currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
-        let audioCtx, analyser, dataArray;
-        let isReactivityInitialized = false;
+        let siteBootTime = Date.now();
 
-        // ================= GLITCH ENGINE (Idea 1) =================
+        // ================= GLITCH ENGINE =================
         const glitchChars = "█▓▒░$%#@!&*<>/?";
         
         function triggerFakeCrash() {
-            // Find a random text element in the main content
             const elements = document.querySelectorAll('#app-content a, #app-content h1, #app-content span');
             const target = elements[Math.floor(Math.random() * elements.length)];
             if (!target || target.classList.contains('glitch-active')) return;
@@ -364,67 +389,55 @@
                     if (char === ' ') return char;
                     return Math.random() > 0.7 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : char;
                 }).join('');
-                
-                target.style.color = 'var(--glitch-color)';
 
                 if (iterations >= maxIterations) {
                     clearInterval(interval);
                     target.innerText = originalText;
-                    target.style.color = '';
                     target.classList.remove('glitch-active');
                 }
                 iterations++;
             }, 80);
         }
 
-        // Run glitch periodically
         setInterval(() => {
             if (Math.random() > 0.8) triggerFakeCrash();
         }, 4000);
 
-        // ================= AUDIO REACTIVITY (Idea 3) =================
-        function initAudioReactivity() {
-            if (isReactivityInitialized) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                const source = audioCtx.createMediaElementSource(mainAudio);
-                source.connect(analyser);
-                analyser.connect(audioCtx.destination);
-                analyser.fftSize = 64;
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-                isReactivityInitialized = true;
-                requestAnimationFrame(updateReactivity);
-            } catch (e) {
-                console.warn("Audio Reactivity blocked by browser or cross-origin policy.");
-            }
+        // ================= ANALOG VU METER =================
+        const numBars = 15;
+        const bars = [];
+        for (let i = 0; i < numBars; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'vu-bar';
+            vuContainer.appendChild(bar);
+            bars.push(bar);
         }
 
-        function updateReactivity() {
-            if (!isReactivityInitialized) return;
-            analyser.getByteFrequencyData(dataArray);
-            
-            // Get average volume
-            let sum = 0;
-            for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
-            const avg = sum / dataArray.length;
-            const intensity = avg / 255;
-
-            // React scanlines
-            scanline.style.opacity = 0.3 + (intensity * 0.4);
-            
-            // React pulse dot
-            if (intensity > 0.1) {
-                headerPulse.style.transform = `scale(${1 + intensity * 1.5})`;
-                headerPulse.style.boxShadow = `0 0 ${10 + intensity * 20}px var(--crimson)`;
+        function updateVUMeter() {
+            if (mainAudio.paused) {
+                bars.forEach(bar => {
+                    bar.style.height = '2px';
+                    bar.classList.remove('active', 'peak');
+                });
             } else {
-                headerPulse.style.transform = `scale(1)`;
+                bars.forEach((bar, i) => {
+                    // Simulated movement for analog feel
+                    const noise = Math.random() * 10;
+                    const h = Math.max(2, Math.floor(Math.random() * 12));
+                    bar.style.height = h + 'px';
+                    
+                    if (h > 4) bar.classList.add('active');
+                    else bar.classList.remove('active');
+                    
+                    if (h > 9 && i > numBars - 4) bar.classList.add('peak');
+                    else bar.classList.remove('peak');
+                });
             }
-
-            requestAnimationFrame(updateReactivity);
+            requestAnimationFrame(updateVUMeter);
         }
+        updateVUMeter();
 
-        // ================= TERMINAL SHELL (Idea 5 - Base) =================
+        // ================= TERMINAL SHELL =================
         const consoleContainer = document.getElementById('console-container');
         const consoleInput = document.getElementById('console-input');
 
@@ -441,8 +454,6 @@
             if (e.key === 'Enter') {
                 const cmd = consoleInput.value.toLowerCase().trim();
                 consoleInput.value = '';
-                
-                // Add your custom logic here later
                 if (cmd === 'help') {
                     addLog("SYS: HELP - CMDS LOCKED IN SAFE MODE");
                 } else if (cmd === 'exit' || cmd === 'logout') {
@@ -453,11 +464,11 @@
             }
         });
 
-        // ================= LOG SYSTEM (Idea 2) =================
+        // ================= LOG SYSTEM =================
         const eerieLogs = [
             "WARNING: UNKNOWN_USER_DETECTED",
             "ERR: HEARTBEAT_FOUND_IN_BUFFER",
-            "VOID_SECTOR_ACCESS_DENIED",
+            "VOID_ACCESS_DENIED",
             "WHY_ARE_YOU_HERE?"
         ];
 
@@ -526,7 +537,6 @@
             currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
             loadTrack(currentTrackIndex);
             try {
-                initAudioReactivity();
                 await mainAudio.play();
                 playBtn.innerText = "PAUSE";
                 audioStatusText.innerText = "Streaming";
@@ -538,8 +548,6 @@
         playBtn.onclick = async () => {
             if (mainAudio.paused) {
                 try {
-                    initAudioReactivity();
-                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
                     if (!mainAudio.src || mainAudio.src === window.location.href) loadTrack(currentTrackIndex);
                     await mainAudio.play();
                     playBtn.innerText = "PAUSE";
@@ -591,7 +599,9 @@
             }, 1000);
 
             setInterval(() => {
-                if (Math.random() > 0.85) {
+                const totalElapsed = (Date.now() - siteBootTime) / 1000;
+                // If 90 seconds have passed, allow eerie logs
+                if (totalElapsed > 90 && Math.random() > 0.8) {
                     addLog(eerieLogs[Math.floor(Math.random() * eerieLogs.length)]);
                 } else {
                     addLog(["INIT_CORE", "QUERY_DB", "AUTH_GRNT", "STATUS_OK", "PING_GATEWAY"][Math.floor(Math.random()*5)]);
