@@ -18,7 +18,8 @@
             font-family: 'Space Mono', monospace; 
             background-color: #050505;
             color: var(--terminal-gray);
-            overflow: hidden; /* Locked until boot finishes */
+            overflow-x: hidden;
+            /* overflow-y hidden until boot finishes */
         }
 
         /* CRT Scanline */
@@ -93,21 +94,30 @@
             font-size: 9px;
             z-index: 30;
             color: #444;
-            width: calc(100% - 2rem);
-            left: 1rem;
             opacity: 0;
             transition: opacity 1s ease;
         }
 
+        /* Desktop Positioning */
         @media (min-width: 768px) {
-            .widget-box { width: 240px; left: auto; right: 2rem; }
+            .widget-box { width: 240px; right: 2rem; }
             .diag-box { top: 2rem; }
             .audio-box { top: 18rem; }
         }
 
+        /* Mobile Positioning: Tucked in the corners at the bottom to stay out of center */
         @media (max-width: 767px) {
-            .diag-box { bottom: 13rem; }
-            .audio-box { bottom: 2rem; }
+            .widget-box { 
+                width: 45%; 
+                font-size: 8px;
+                padding: 6px;
+                bottom: 1rem;
+            }
+            .diag-box { left: 1rem; height: 110px; }
+            .audio-box { right: 1rem; height: 110px; }
+            
+            /* Hide non-essential logs on small screens to save space */
+            #diag-logs { height: 40px !important; }
         }
 
         .widget-header {
@@ -141,7 +151,7 @@
         }
     </style>
 </head>
-<body class="p-8 md:p-24 pb-72 md:pb-24">
+<body class="p-8 md:p-24 pb-48 md:pb-24">
 
     <div id="boot-screen"></div>
     <div class="scanline"></div>
@@ -154,13 +164,13 @@
         <div id="diag-logs" class="space-y-1 h-32 overflow-hidden opacity-60"></div>
         <div class="mt-2 pt-1 border-t border-[#1a1a1a] flex justify-between">
             <span>CPU: <span id="cpu-load">02%</span></span>
-            <span>MEM: 1.4GB</span>
+            <span class="hidden md:inline">MEM: 1.4GB</span>
         </div>
     </div>
 
     <div class="widget-box audio-box" id="audio-widget">
         <div class="widget-header">
-            <span class="widget-title">AUDIO_MODULE</span>
+            <span class="widget-title">AUDIO</span>
             <span id="current-time" class="text-white opacity-60">0:00</span> 
         </div>
         <div class="mb-1 truncate text-white opacity-80" id="track-name">READY_TO_BOOT</div>
@@ -169,21 +179,21 @@
         </div>
         
         <div class="audio-controls">
-            <div class="flex items-center gap-2">
+            <div class="hidden md:flex items-center gap-2">
                 <div id="audio-status-dot" class="w-1.5 h-1.5 bg-red-800 rounded-full animate-pulse"></div>
                 <span id="audio-status-text" class="text-[7px] uppercase tracking-tighter opacity-50">Safe Mode</span>
             </div>
-            <div class="flex gap-4">
+            <div class="flex gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-end">
                 <button class="audio-btn font-bold text-white" id="play-btn">PLAY</button>
                 <button class="audio-btn font-bold" id="skip-btn">SKIP</button>
-                <button class="audio-btn" id="mute-btn">MUTE</button>
+                <button class="audio-btn hidden md:block" id="mute-btn">MUTE</button>
             </div>
         </div>
         <audio id="main-audio" preload="auto"></audio>
     </div>
 
     <main id="app-content" class="max-w-2xl relative z-20 opacity-0">
-        <header class="mb-20">
+        <header class="mb-12 md:mb-20">
             <div class="flex items-center gap-3 mb-4 typewriter-line" data-delay="0">
                 <div class="w-2 h-2 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b] animate-pulse"></div>
                 <h1 class="text-white text-xl tracking-tighter">ARCHIVE_01</h1>
@@ -193,7 +203,7 @@
             </p>
         </header>
 
-        <section class="space-y-12">
+        <section class="space-y-8 md:space-y-12">
             <div class="group typewriter-line" data-delay="1600">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">01 / Utilities</span>
                 <a href="utilities.html" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg">Web Tools</a>
@@ -211,7 +221,7 @@
 
             <div class="group typewriter-line" data-delay="4000">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">04 / Network</span>
-                <div class="flex flex-wrap items-center gap-6">
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
                     <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm">CSFloat</a>
                     <a href="https://letterboxd.com/Jiwt" target="_blank" class="link-item py-2 text-sm">Letterboxd</a>
                     <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm">LighterPack</a>
@@ -221,7 +231,7 @@
             </div>
         </section>
 
-        <footer class="mt-32 pt-8 border-t border-[#111] typewriter-line" data-delay="4800">
+        <footer class="mt-24 md:mt-32 pt-8 border-t border-[#111] typewriter-line" data-delay="4800">
             <div class="terminal-cursor"></div>
         </footer>
     </main>
@@ -240,6 +250,7 @@
 
         function runPostSequence() {
             const screen = document.getElementById('boot-screen');
+            if (!screen) return;
             let count = 0;
             const interval = setInterval(() => {
                 if (count < bootData.length) {
@@ -259,10 +270,10 @@
         function revealSite() {
             const screen = document.getElementById('boot-screen');
             const main = document.getElementById('app-content');
-            screen.style.opacity = '0';
+            if (screen) screen.style.opacity = '0';
             setTimeout(() => {
-                screen.remove();
-                document.body.style.overflow = 'auto';
+                if (screen) screen.remove();
+                document.body.style.overflowY = 'auto';
                 main.style.opacity = '1';
                 document.querySelectorAll('.typewriter-line').forEach(line => {
                     setTimeout(() => line.classList.add('typing'), parseInt(line.getAttribute('data-delay')));
@@ -280,8 +291,8 @@
             { name: "JFMAMJJASOND", url: "audio/03 JFMAMJJASOND.mp3" },
             { name: "SO MUCH MORE", url: "audio/03. So Much More (Prod. By Alchemist).mp3" },
             { name: "ALLEN IVERSON", url: "audio/04. Allen Iverson (Feat. Heem Stogied) (Prod. By Earl Sweatshirt).mp3" },
-            { name: "WINGARIUM LEVIOSA", url: "audio/06 Wingarium Leviosa.mp3" },
-            { name: "DNA SWAB", url: "audio/06 DNA Swab.mp3" },
+            { name: "WINGARIUM LEVIOSA", url: "audio/06 Wingarium Leviosa (Advanced Listening).mp3" },
+            { name: "DNA SWAB", url: "audio/06. DNA Swab (Feat. Tha God Fahim) (Prod. By Earl Sweatshirt).mp3" },
             { name: "MAC FLURRIES", url: "audio/08. Mac Flurries (Feat. Heem Stogied) (Prod. By Sage Elsesser).mp3" },
             { name: "LONG TIME", url: "audio/10. Long Time (Prod. By Alchemist).mp3" },
             { name: "RORSHACH'S", url: "audio/11. Rorshach's (Feat. Tha God Fahim) (Prod. By Sage Elsesser).mp3" },
@@ -290,7 +301,15 @@
             { name: "GOBSTOPPER", url: "audio/22 Gobstopper.mp3" },
             { name: "BYE..", url: "audio/29 Bye..mp3" },
             { name: "LAST DONUT OF THE NIGHT", url: "audio/30 Last Donut of the Night.mp3" },
-            { name: "DONUTS (INTRO)", url: "audio/31 Donuts (Intro).mp3" }
+            { name: "DONUTS (INTRO)", url: "audio/31 Donuts (Intro).mp3" },
+            { name: "I PROMISE YA", url: "audio/I Promise Ya.mp3" },
+            { name: "SPRAY 4 ME", url: "audio/Gucci Mane - Spray 4 Me (Prod By DPBEATS).mp3" },
+            { name: "IT JUST DOESNT MATTER", url: "audio/07 - It Just Doesnt Matter.mp3" },
+            { name: "INSIDE OUTSIDE", url: "audio/01 - Inside Outside.wav.mp3" },
+            { name: "SWITCHIN LANES", url: "audio/switchin lanes.mp3" },
+            { name: "12 BARS", url: "audio/01 - 12 Bars (DatPiff Exclusive).mp3" },
+            { name: "MORGAN TRACY", url: "audio/03 - Morgan Tracy (DatPiff Exclusive).mp3" },
+            { name: "FUCK ME", url: "audio/06 - Fuck Me (DatPiff Exclusive).mp3" }
         ];
 
         let currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
@@ -339,11 +358,11 @@
             try {
                 await mainAudio.play();
                 playBtn.innerText = "PAUSE";
-                audioStatusText.innerText = "Streaming";
+                if (audioStatusText) audioStatusText.innerText = "Streaming";
             } catch (e) {
-                console.warn("Playback prevented or interrupted during skip:", e);
+                console.warn("Playback prevented:", e);
                 playBtn.innerText = "PLAY";
-                audioStatusText.innerText = "Ready";
+                if (audioStatusText) audioStatusText.innerText = "Ready";
             }
         }
 
@@ -355,15 +374,15 @@
                     }
                     await mainAudio.play();
                     playBtn.innerText = "PAUSE";
-                    audioStatusText.innerText = "Streaming";
+                    if (audioStatusText) audioStatusText.innerText = "Streaming";
                 } catch (e) {
                     console.error("Playback block:", e);
-                    audioStatusText.innerText = "Click Play";
+                    if (audioStatusText) audioStatusText.innerText = "Click Play";
                 }
             } else {
                 mainAudio.pause();
                 playBtn.innerText = "PLAY";
-                audioStatusText.innerText = "Paused";
+                if (audioStatusText) audioStatusText.innerText = "Paused";
             }
         };
 
@@ -383,7 +402,7 @@
 
         mainAudio.onerror = () => {
             console.error("Error loading audio track:", audioTracks[currentTrackIndex].url);
-            audioStatusText.innerText = "Error Loading";
+            if (audioStatusText) audioStatusText.innerText = "Error Loading";
         };
 
         mainAudio.onended = () => skipToRandom();
