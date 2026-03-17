@@ -275,35 +275,35 @@
         <header class="mb-12 md:mb-20">
             <div class="flex items-center gap-3 mb-4 typewriter-line" data-delay="0">
                 <div id="header-pulse" class="w-2 h-2 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b] animate-pulse"></div>
-                <h1 class="text-white text-xl tracking-tighter" id="site-title">ARCHIVE_01</h1>
+                <h1 class="text-white text-xl tracking-tighter glitch-target" id="site-title">ARCHIVE_01</h1>
             </div>
         </header>
 
         <section class="space-y-8 md:space-y-12">
             <div class="group typewriter-line" data-delay="1600">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">01 / Utilities</span>
-                <a href="utilities.html" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg">Web Tools</a>
+                <a href="utilities.html" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg glitch-target">Web Tools</a>
             </div>
 
             <div class="group typewriter-line" data-delay="2400">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">02 / Documentation</span>
-                <a href="#" class="link-item w-full block py-2 text-lg">Writings</a>
+                <a href="#" class="link-item w-full block py-2 text-lg glitch-target">Writings</a>
             </div>
 
             <div class="group typewriter-line" data-delay="3200">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">03 / Visuals</span>
-                <a href="galleries.html" class="link-item w-full block py-2 text-lg">Gallery</a>
+                <a href="galleries.html" class="link-item w-full block py-2 text-lg glitch-target">Gallery</a>
             </div>
 
             <div class="group typewriter-line" data-delay="4000">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">04 / Network</span>
                 <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm">CSFloat</a>
-                    <a href="https://www.inaturalist.org/observations?user_id=jiwt&verifiable=any" target="_blank" class="link-item py-2 text-sm">iNaturalist</a>
-                    <a href="https://letterboxd.com/Jiwt" target="_blank" class="link-item py-2 text-sm">Letterboxd</a>
-                    <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm">LighterPack</a>
-                    <a href="https://steamcommunity.com/id/Jiwt/" target="_blank" class="link-item py-2 text-sm">Steam</a>
-                    <a href="https://www.twitch.tv/jiwt" target="_blank" class="link-item py-2 text-sm">Twitch</a>
+                    <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm glitch-target">CSFloat</a>
+                    <a href="https://www.inaturalist.org/observations?user_id=jiwt&verifiable=any" target="_blank" class="link-item py-2 text-sm glitch-target">iNaturalist</a>
+                    <a href="https://letterboxd.com/Jiwt" target="_blank" class="link-item py-2 text-sm glitch-target">Letterboxd</a>
+                    <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm glitch-target">LighterPack</a>
+                    <a href="https://steamcommunity.com/id/Jiwt/" target="_blank" class="link-item py-2 text-sm glitch-target">Steam</a>
+                    <a href="https://www.twitch.tv/jiwt" target="_blank" class="link-item py-2 text-sm glitch-target">Twitch</a>
                 </div>
             </div>
         </section>
@@ -398,16 +398,14 @@
                 source.connect(analyser);
                 analyser.connect(audioCtx.destination);
                 
-                // standard FFT size for detailed spread
                 analyser.fftSize = 128; 
-                analyser.smoothingTimeConstant = 0.82; // Smoother movement
+                analyser.smoothingTimeConstant = 0.82;
                 const bufferLength = analyser.frequencyBinCount;
                 dataArray = new Uint8Array(bufferLength);
                 isAudioContextInitialized = true;
             } catch(e) { console.warn("Audio Context blocked or failed."); }
         }
 
-        // 16 Bar Layout Reverted
         const numBars = 16;
         const bars = [];
         for (let i = 0; i < numBars; i++) {
@@ -420,21 +418,12 @@
         function updateVUMeter() {
             if (isAudioContextInitialized && !mainAudio.paused) {
                 analyser.getByteFrequencyData(dataArray);
-                
                 for (let i = 0; i < numBars; i++) {
                     const bar = bars[i];
-                    // Pick a broader range of bins to ensure diversity between bars
-                    // Low frequencies (0-4), Mids (5-12), Highs (13+)
-                    // We step through the dataArray to cover more of the audible spectrum
                     const val = dataArray[i * 2] || 0; 
-                    
-                    // Dynamic scaling to prevent "maxing out"
                     const h = Math.max(2, (val / 255) * 18);
-                    
                     bar.style.height = h + 'px';
-                    
                     if (val > 40) bar.classList.add('active'); else bar.classList.remove('active');
-                    // Peak indicator logic - only for very high intensities
                     if (val > 230) bar.classList.add('peak'); else bar.classList.remove('peak');
                 }
             } else {
@@ -446,6 +435,46 @@
             requestAnimationFrame(updateVUMeter);
         }
         updateVUMeter();
+
+        // --- GLITCH TEXT FEATURE ---
+        const glitchChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$!@#%^&*()-_=+[{]}|;:',.<>/?¿¥¤†‡";
+        
+        function glitchElement(el) {
+            const originalText = el.innerText;
+            let iterations = 0;
+            const maxIterations = originalText.length;
+            
+            const interval = setInterval(() => {
+                el.innerText = originalText
+                    .split("")
+                    .map((char, index) => {
+                        if (index < iterations) return originalText[index];
+                        return glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                    })
+                    .join("");
+
+                if (iterations >= maxIterations) {
+                    clearInterval(interval);
+                    el.innerText = originalText;
+                }
+                iterations += 1 / 2;
+            }, 30);
+        }
+
+        function triggerRandomGlitch() {
+            if (isLockdown) return;
+            const targets = document.querySelectorAll('.glitch-target');
+            if (targets.length > 0) {
+                const target = targets[Math.floor(Math.random() * targets.length)];
+                glitchElement(target);
+            }
+            // Random interval between 4 and 10 seconds
+            setTimeout(triggerRandomGlitch, 4000 + Math.random() * 6000);
+        }
+
+        // Initialize glitch loop after boot
+        setTimeout(triggerRandomGlitch, 6000);
+
 
         const consoleContainer = document.getElementById('console-container');
         const consoleInput = document.getElementById('console-input');
