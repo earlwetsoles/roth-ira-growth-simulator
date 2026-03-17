@@ -146,12 +146,6 @@
             50% { opacity: 0; }
         }
 
-        /* Glitch styles */
-        .glitch-active {
-            color: var(--glitch-color);
-            text-shadow: 1px 0px 4px rgba(255,0,0,0.5);
-        }
-
         /* Hidden Terminal Console */
         #console-container {
             position: fixed;
@@ -163,9 +157,21 @@
             padding: 10px 20px;
             z-index: 1000;
             display: none;
-            align-items: center;
+            flex-direction: column;
             font-size: 12px;
             color: var(--terminal-off-white);
+            max-height: 40vh;
+        }
+        #console-output {
+            overflow-y: auto;
+            margin-bottom: 5px;
+            font-size: 10px;
+            color: #666;
+            max-height: 150px;
+        }
+        .console-input-row {
+            display: flex;
+            align-items: center;
         }
         #console-input {
             background: transparent;
@@ -181,7 +187,7 @@
         .vu-meter-container {
             display: flex;
             gap: 2px;
-            height: 12px;
+            height: 14px;
             align-items: flex-end;
             margin-top: 10px;
             padding-top: 4px;
@@ -191,7 +197,7 @@
             flex: 1;
             background: #1a1a1a;
             height: 2px;
-            transition: height 0.15s ease, background 0.15s ease;
+            transition: height 0.08s ease; /* Slightly slower for smoother feel */
         }
         .vu-bar.active {
             background: #444;
@@ -206,10 +212,12 @@
     <div id="boot-screen"></div>
     <div class="scanline" id="scanline"></div>
 
-    <!-- Hidden Terminal -->
     <div id="console-container">
-        <span>ARCH_OS:</span>
-        <input type="text" id="console-input" spellcheck="false" autocomplete="off" placeholder="type 'help'...">
+        <div id="console-output"></div>
+        <div class="console-input-row">
+            <span>ARCH_OS:</span>
+            <input type="text" id="console-input" spellcheck="false" autocomplete="off" placeholder="type 'help'...">
+        </div>
     </div>
 
     <div class="widget-box diag-box" id="diag-widget">
@@ -246,10 +254,7 @@
             </div>
         </div>
 
-        <!-- Analog VU Meter Widget -->
-        <div class="vu-meter-container" id="vu-meter">
-            <!-- Bars generated via JS -->
-        </div>
+        <div class="vu-meter-container" id="vu-meter"></div>
 
         <audio id="main-audio" preload="auto" crossOrigin="anonymous"></audio>
     </div>
@@ -298,7 +303,6 @@
     </main>
 
     <script>
-        // ================= CONFIG & ASSETS =================
         const bootData = [
             "Initializing BIOS...", "Verifying CPU...", "Memory Test: 16384MB OK",
             "SATA Primary Master: 500GB SSD", "USB Controller Initialized...",
@@ -355,7 +359,6 @@
             { name: "SHERWIN WILLIAMS", url: "audio/Mach-Hommy - DUMPMEISTER - 05 Sherwin Williams feat. Koncept Jack$on (beats by NAVY BLUE).mp3" }
         ];
 
-        // ================= ELEMENTS =================
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
         const skipBtn = document.getElementById('skip-btn');
@@ -369,39 +372,25 @@
 
         let currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
         let siteBootTime = Date.now();
-
-        // ================= GLITCH ENGINE =================
-        const glitchChars = "█▓▒░$%#@!&*<>/?";
         
-        function triggerFakeCrash() {
-            const elements = document.querySelectorAll('#app-content a, #app-content h1, #app-content span');
-            const target = elements[Math.floor(Math.random() * elements.length)];
-            if (!target || target.classList.contains('glitch-active')) return;
+        // Web Audio API State
+        let audioCtx, analyser, source, dataArray;
+        let isAudioContextInitialized = false;
 
-            const originalText = target.innerText;
-            target.classList.add('glitch-active');
-            
-            let iterations = 0;
-            const maxIterations = 5;
-            
-            const interval = setInterval(() => {
-                target.innerText = originalText.split('').map((char, i) => {
-                    if (char === ' ') return char;
-                    return Math.random() > 0.7 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : char;
-                }).join('');
-
-                if (iterations >= maxIterations) {
-                    clearInterval(interval);
-                    target.innerText = originalText;
-                    target.classList.remove('glitch-active');
-                }
-                iterations++;
-            }, 80);
+        function initAudioContext() {
+            if (isAudioContextInitialized) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioCtx.createAnalyser();
+                source = audioCtx.createMediaElementSource(mainAudio);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                analyser.fftSize = 64; 
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                isAudioContextInitialized = true;
+            } catch(e) { console.warn("Audio Context blocked or failed."); }
         }
-
-        setInterval(() => {
-            if (Math.random() > 0.8) triggerFakeCrash();
-        }, 4000);
 
         // ================= ANALOG VU METER =================
         const numBars = 15;
@@ -414,32 +403,45 @@
         }
 
         function updateVUMeter() {
-            if (mainAudio.paused) {
+            if (isAudioContextInitialized && !mainAudio.paused) {
+                analyser.getByteFrequencyData(dataArray);
+                for (let i = 0; i < numBars; i++) {
+                    const bar = bars[i];
+                    const val = dataArray[i] || 0;
+                    const h = Math.max(2, (val / 255) * 14);
+                    bar.style.height = h + 'px';
+                    if (val > 40) bar.classList.add('active'); else bar.classList.remove('active');
+                    if (val > 210 && i > 10) bar.classList.add('peak'); else bar.classList.remove('peak');
+                }
+            } else {
                 bars.forEach(bar => {
                     bar.style.height = '2px';
                     bar.classList.remove('active', 'peak');
-                });
-            } else {
-                bars.forEach((bar, i) => {
-                    // Simulated movement for analog feel
-                    const noise = Math.random() * 10;
-                    const h = Math.max(2, Math.floor(Math.random() * 12));
-                    bar.style.height = h + 'px';
-                    
-                    if (h > 4) bar.classList.add('active');
-                    else bar.classList.remove('active');
-                    
-                    if (h > 9 && i > numBars - 4) bar.classList.add('peak');
-                    else bar.classList.remove('peak');
                 });
             }
             requestAnimationFrame(updateVUMeter);
         }
         updateVUMeter();
 
-        // ================= TERMINAL SHELL =================
+        // ================= TERMINAL SHELL LOGIC =================
         const consoleContainer = document.getElementById('console-container');
         const consoleInput = document.getElementById('console-input');
+        const consoleOutput = document.getElementById('console-output');
+
+        const virtualFiles = {
+            's4_lazar.log': "COORDS: 37.235°N 115.811°W\nSTATUS: REDACTED\nSUBJECT: PROPULSION_SYSTEMS",
+            'giza.log': "COORDS: 29.979°N 31.134°E\nSTATUS: ANCIENT_TECH",
+            'secret_projects.dir': "[HIDDEN_FOLDER] - project_icarus, project_looking_glass"
+        };
+
+        function writeToConsole(text, color = "#666") {
+            const line = document.createElement('div');
+            line.style.color = color;
+            line.style.marginBottom = "2px";
+            line.innerText = text;
+            consoleOutput.appendChild(line);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
 
         window.addEventListener('keydown', (e) => {
             if (e.key === '~' || e.key === '`') {
@@ -452,46 +454,61 @@
 
         consoleInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                const cmd = consoleInput.value.toLowerCase().trim();
+                const rawInput = consoleInput.value.trim();
+                const cmd = rawInput.toLowerCase().split(' ')[0];
                 consoleInput.value = '';
-                if (cmd === 'help') {
-                    addLog("SYS: HELP - CMDS LOCKED IN SAFE MODE");
-                } else if (cmd === 'exit' || cmd === 'logout') {
-                    consoleContainer.style.display = 'none';
-                } else if (cmd !== '') {
-                    addLog(`ERR: CMD '${cmd.toUpperCase()}' NOT FOUND`);
-                }
+                writeToConsole(`> ${rawInput.toUpperCase()}`, "#aaa");
+                if(cmd === 'help') writeToConsole("LS, READ, WHOAMI, EXIT");
+                else if(cmd === 'ls') Object.keys(virtualFiles).forEach(f => writeToConsole(` - ${f}`));
+                else if(cmd === 'exit') consoleContainer.style.display = 'none';
+                else writeToConsole("ERR: CMD NOT FOUND");
             }
         });
 
         // ================= LOG SYSTEM =================
-        const eerieLogs = [
-            "WARNING: UNKNOWN_USER_DETECTED",
-            "ERR: HEARTBEAT_FOUND_IN_BUFFER",
-            "VOID_ACCESS_DENIED",
-            "WHY_ARE_YOU_HERE?"
-        ];
-
-        function addLog(text) {
+        function addLog(text, color = null) {
             const log = document.createElement('div');
             log.innerText = `> ${text}`;
+            if(color) log.style.color = color;
             diagLogs.prepend(log);
             if (diagLogs.children.length > 8) diagLogs.removeChild(diagLogs.lastChild);
+        }
+
+        const diagMessages = [
+            "KERNEL_SYNC_OK", "IO_PORT_CLEARED", "TEMP_NOMINAL: 34C",
+            "PACKET_DUMP_COMPLETE", "CACHE_CLEANUP_SUCESS", "PROXY_ROTATED",
+            "ENCRYPTION_LAYER_STABLE", "AUTH_KEY_REGENERATED", "UPLINK_ENCRYPTED",
+            "HEARTBEAT_SIGNAL_STABLE"
+        ];
+
+        function runRandomDiag() {
+            const msg = diagMessages[Math.floor(Math.random() * diagMessages.length)];
+            
+            // Trigger log
+            addLog(msg);
+
+            // Special pairing: If Heartbeat shows up, follow with User Detected
+            if (msg === "HEARTBEAT_SIGNAL_STABLE") {
+                setTimeout(() => {
+                    addLog("UNKNOWN_USER_DETECTED", "#991b1b");
+                }, 1500);
+            }
+
+            // Schedule next run
+            setTimeout(runRandomDiag, 3000 + Math.random() * 5000);
         }
 
         // ================= SITE CORE =================
         function runPostSequence() {
             const screen = document.getElementById('boot-screen');
-            if (!screen) return;
             let count = 0;
             const interval = setInterval(() => {
                 if (count < bootData.length) {
                     const line = document.createElement('div');
                     line.className = 'post-line';
-                    line.innerText = `[ OK ] ${bootData[count]}`;
+                    line.innerText = `[ OK ] ${bootData[count++]}`;
                     screen.appendChild(line);
                     screen.scrollTop = screen.scrollHeight;
-                    count++;
                 } else {
                     clearInterval(interval);
                     setTimeout(revealSite, 300);
@@ -505,108 +522,69 @@
             if (screen) screen.style.opacity = '0';
             setTimeout(() => {
                 if (screen) screen.remove();
-                document.body.style.overflowY = 'auto';
                 main.style.opacity = '1';
                 document.querySelectorAll('.typewriter-line').forEach(line => {
                     setTimeout(() => line.classList.add('typing'), parseInt(line.getAttribute('data-delay')));
                 });
                 document.getElementById('diag-widget').style.opacity = '1';
                 document.getElementById('audio-widget').style.opacity = '1';
+                runRandomDiag();
             }, 400);
-        }
-
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return "0:00";
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
         function loadTrack(index) {
             const track = audioTracks[index];
-            if (!track) return;
-            mainAudio.pause();
-            mainAudio.currentTime = 0;
-            progressBar.style.width = '0%';
             mainAudio.src = track.url;
             trackName.innerText = track.name.toUpperCase();
             mainAudio.load();
         }
 
-        async function skipToRandom() {
-            currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
-            loadTrack(currentTrackIndex);
+        async function playAudio() {
+            initAudioContext();
+            if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
             try {
                 await mainAudio.play();
                 playBtn.innerText = "PAUSE";
                 audioStatusText.innerText = "Streaming";
-            } catch (e) {
-                playBtn.innerText = "PLAY";
-            }
+            } catch (e) { console.warn("Playback prevented."); }
         }
 
-        playBtn.onclick = async () => {
-            if (mainAudio.paused) {
-                try {
-                    if (!mainAudio.src || mainAudio.src === window.location.href) loadTrack(currentTrackIndex);
-                    await mainAudio.play();
-                    playBtn.innerText = "PAUSE";
-                    audioStatusText.innerText = "Streaming";
-                } catch (e) {
-                    audioStatusText.innerText = "Click Play";
-                }
-            } else {
+        playBtn.onclick = () => {
+            if (mainAudio.paused) playAudio();
+            else {
                 mainAudio.pause();
                 playBtn.innerText = "PLAY";
                 audioStatusText.innerText = "Paused";
             }
         };
 
-        skipBtn.onclick = () => skipToRandom();
+        skipBtn.onclick = () => {
+            currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
+            loadTrack(currentTrackIndex);
+            playAudio();
+        };
+
         muteBtn.onclick = () => {
             mainAudio.muted = !mainAudio.muted;
             muteBtn.innerText = mainAudio.muted ? "UNMUTE" : "MUTE";
         };
 
         mainAudio.ontimeupdate = () => {
-            if (isNaN(mainAudio.duration) || mainAudio.duration === 0) return;
-            const progress = (mainAudio.currentTime / mainAudio.duration) * 100;
-            progressBar.style.width = `${progress}%`;
-            currentTimeDisplay.innerText = formatTime(mainAudio.currentTime);
-        };
-
-        mainAudio.onended = () => skipToRandom();
-
-        document.getElementById('progress-area').onclick = (e) => {
-            if (isNaN(mainAudio.duration) || mainAudio.duration === 0) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            mainAudio.currentTime = pos * mainAudio.duration;
+            if (!mainAudio.duration) return;
+            progressBar.style.width = `${(mainAudio.currentTime / mainAudio.duration) * 100}%`;
+            const m = Math.floor(mainAudio.currentTime / 60);
+            const s = Math.floor(mainAudio.currentTime % 60);
+            currentTimeDisplay.innerText = `${m}:${s.toString().padStart(2, '0')}`;
         };
 
         window.addEventListener('DOMContentLoaded', () => {
             runPostSequence();
             loadTrack(currentTrackIndex);
-
-            let startTime = Date.now();
             setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
-                const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
-                const s = String(elapsed % 60).padStart(2, '0');
-                document.getElementById('uptime').innerText = `UP: ${h}:${m}:${s}`;
+                const elapsed = Math.floor((Date.now() - siteBootTime) / 1000);
+                document.getElementById('uptime').innerText = `UP: ${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
                 document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 8 + 1).toString().padStart(2, '0')}%`;
             }, 1000);
-
-            setInterval(() => {
-                const totalElapsed = (Date.now() - siteBootTime) / 1000;
-                // If 90 seconds have passed, allow eerie logs
-                if (totalElapsed > 90 && Math.random() > 0.8) {
-                    addLog(eerieLogs[Math.floor(Math.random() * eerieLogs.length)]);
-                } else {
-                    addLog(["INIT_CORE", "QUERY_DB", "AUTH_GRNT", "STATUS_OK", "PING_GATEWAY"][Math.floor(Math.random()*5)]);
-                }
-            }, 3000);
         });
     </script>
 </body>
