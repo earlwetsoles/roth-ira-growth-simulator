@@ -6,40 +6,90 @@
     <title>Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
         
+        :root {
+            --crimson: #991b1b;
+            --terminal-gray: #666;
+            --terminal-off-white: #eee;
+        }
+
         body { 
             font-family: 'Space Mono', monospace; 
             background-color: #050505;
-            color: #666;
+            color: var(--terminal-gray);
+            overflow-x: hidden;
+        }
+
+        /* CRT Scanline */
+        .scanline {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 4px;
+            z-index: 40;
+            pointer-events: none;
+            opacity: 0.3;
         }
 
         .link-item {
             border-bottom: 1px solid #1a1a1a;
             transition: all 0.2s ease;
+            cursor: pointer;
+            display: inline-block;
         }
 
         .link-item:hover {
-            color: #eee;
-            border-bottom-color: #991b1b; /* Crimson Red */
+            color: var(--terminal-off-white);
+            border-bottom-color: var(--crimson);
             padding-left: 8px;
         }
 
-        /* Subtle scanline overlay */
-        .scanline {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px;
-            z-index: 10;
-            pointer-events: none;
-            opacity: 0.2;
+        /* Full width variant for main navigation blocks */
+        .link-item-full {
+            width: 100%;
         }
 
-        /* Red Accent for Selection */
         ::selection {
-            background: #991b1b;
+            background: var(--crimson);
             color: white;
+        }
+
+        #copy-toast {
+            transition: opacity 0.3s ease;
+        }
+
+        /* Typewriter Classes */
+        .typewriter-line {
+            overflow: hidden;
+            white-space: nowrap;
+            width: 0;
+            opacity: 0;
+        }
+
+        .typing {
+            animation: typing-anim 0.4s steps(30, end) forwards;
+            opacity: 1;
+        }
+
+        @keyframes typing-anim {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        /* System Diagnostics Box */
+        .diag-box {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            width: 240px;
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid #1a1a1a;
+            padding: 10px;
+            font-size: 9px;
+            z-index: 30;
+            color: #444;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -47,14 +97,29 @@
 
     <div class="scanline"></div>
 
+    <!-- Diagnostics Terminal -->
+    <div class="diag-box hidden md:block">
+        <div class="flex justify-between mb-2 border-b border-[#1a1a1a] pb-1">
+            <span class="text-red-900 font-bold">SYS_DIAG</span>
+            <span id="uptime">UP: 00:00:00</span>
+        </div>
+        <div id="diag-logs" class="space-y-1 h-32 overflow-hidden opacity-60">
+            <!-- Dynamic logs inserted here -->
+        </div>
+        <div class="mt-2 pt-1 border-t border-[#1a1a1a] flex justify-between">
+            <span>CPU: <span id="cpu-load">02%</span></span>
+            <span>MEM: 1.4GB</span>
+        </div>
+    </div>
+
     <main class="max-w-2xl relative z-20">
         <!-- Header -->
         <header class="mb-20">
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-2 h-2 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b]"></div>
+            <div class="flex items-center gap-3 mb-4 typewriter-line" style="animation-delay: 0.1s;">
+                <div class="w-2 h-2 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b] animate-pulse"></div>
                 <h1 class="text-white text-xl tracking-tighter">ARCHIVE_01</h1>
             </div>
-            <p class="text-sm leading-relaxed max-w-md italic">
+            <p class="text-sm leading-relaxed max-w-md italic typewriter-line" style="animation-delay: 0.5s;">
                 A collection of things I've put online.
             </p>
         </header>
@@ -62,38 +127,103 @@
         <!-- Links Section -->
         <section class="space-y-12">
             
-            <div class="group">
+            <div class="group typewriter-line" style="animation-delay: 0.9s;">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">01 / Utilities</span>
-                <a href="utilities.html" class="link-item block py-2 text-lg">Web Tools</a>
+                <a href="utilities.html" class="link-item link-item-full block py-2 text-lg">Web Tools</a>
             </div>
 
-            <div class="group">
+            <div class="group typewriter-line" style="animation-delay: 1.2s;">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">02 / Text</span>
-                <a href="#" class="link-item block py-2 text-lg">Writings</a>
+                <a href="#" class="link-item link-item-full block py-2 text-lg">Writings</a>
             </div>
 
-            <div class="group">
+            <div class="group typewriter-line" style="animation-delay: 1.5s;">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">03 / Media</span>
-                <a href="#" class="link-item block py-2 text-lg">Photos</a>
+                <a href="#" class="link-item link-item-full block py-2 text-lg">Photos</a>
             </div>
 
-            <div class="group">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">04 / Contact</span>
-                <div class="flex gap-6">
-                    <a href="#" class="link-item py-2 text-sm hover:text-red-700">GitHub</a>
-                    <a href="#" class="link-item py-2 text-sm hover:text-red-700">Email</a>
+            <div class="group typewriter-line" style="animation-delay: 1.8s;">
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">04 / LINKS</span>
+                <div class="flex items-center gap-6">
+                    <a href="https://steamcommunity.com/id/Jiwt/" target="_blank" rel="noopener noreferrer" class="link-item py-2 text-sm hover:text-red-700">Steam</a>
+                    <a href="https://www.twitch.tv/jiwt" target="_blank" rel="noopener noreferrer" class="link-item py-2 text-sm hover:text-red-700">Twitch</a>
+                    <div class="relative flex items-center">
+                        <button onclick="copyEmail()" class="link-item py-2 text-sm hover:text-red-700">Email</button>
+                        <span id="copy-toast" class="absolute left-full ml-4 text-[10px] uppercase tracking-tighter text-red-500 opacity-0 pointer-events-none">Copied!</span>
+                    </div>
                 </div>
             </div>
 
         </section>
 
         <!-- Footer -->
-        <footer class="mt-32 pt-8 border-t border-[#111]">
+        <footer class="mt-32 pt-8 border-t border-[#111] typewriter-line" style="animation-delay: 2.2s;">
             <p class="text-[10px] uppercase tracking-widest opacity-20">
                 End of line.
             </p>
         </footer>
     </main>
 
+    <script>
+        // Copy Email Logic
+        function copyEmail() {
+            const email = "collinerb2385@gmail.com";
+            const el = document.createElement('textarea');
+            el.value = email;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+
+            const toast = document.getElementById('copy-toast');
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2000);
+        }
+
+        // Initialize Typewriter
+        window.addEventListener('DOMContentLoaded', () => {
+            const lines = document.querySelectorAll('.typewriter-line');
+            lines.forEach(line => {
+                setTimeout(() => {
+                    line.classList.add('typing');
+                }, 100);
+            });
+
+            // Start Uptime Timer
+            let startTime = Date.now();
+            setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+                const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+                const s = String(elapsed % 60).padStart(2, '0');
+                const uptimeEl = document.getElementById('uptime');
+                if(uptimeEl) uptimeEl.innerText = `UP: ${h}:${m}:${s}`;
+                
+                // Random CPU fluctuate
+                const cpu = document.getElementById('cpu-load');
+                if(cpu) cpu.innerText = `${Math.floor(Math.random() * 15 + 1).toString().padStart(2, '0')}%`;
+            }, 1000);
+
+            // Diagnostics Logs
+            const logContainer = document.getElementById('diag-logs');
+            const logMessages = [
+                "INIT_PROTOCOL_HUB_01", "QUERYING_DATABASE...", "ACCESS_GRANTED",
+                "SYNC_UTC_LOCAL", "ENCRYPTING_TUNNEL...", "PACKET_RECV: 104b",
+                "CLEANUP_TEMP_FILES", "STATUS: NOMINAL", "LISTENING_PORT: 443"
+            ];
+
+            setInterval(() => {
+                if(!logContainer) return;
+                const log = document.createElement('div');
+                log.innerText = `> ${logMessages[Math.floor(Math.random() * logMessages.length)]}`;
+                logContainer.prepend(log);
+                if (logContainer.children.length > 8) {
+                    logContainer.removeChild(logContainer.lastChild);
+                }
+            }, 3000);
+        });
+    </script>
 </body>
 </html>
