@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hub</title>
+    <title>ARCHIVE_01</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
@@ -80,9 +80,10 @@
         }
 
         .link-item:hover {
-            color: var(--terminal-off-white);
+            color: var(--crimson);
             border-bottom-color: var(--crimson);
             padding-left: 8px;
+            text-shadow: 0 0 5px var(--crimson);
         }
 
         /* Widgets */
@@ -217,6 +218,11 @@
             background: var(--crimson);
             box-shadow: 0 0 4px var(--crimson);
         }
+
+        .glitch-active {
+            color: var(--crimson) !important;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="p-8 md:p-24 pb-48 md:pb-24">
@@ -286,13 +292,13 @@
             </div>
 
             <div class="group typewriter-line" data-delay="2400">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">02 / Documentation</span>
-                <a href="#" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg glitch-target">Writings</a>
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">02 / Visuals</span>
+                <a href="galleries.html" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg glitch-target">Gallery</a>
             </div>
 
             <div class="group typewriter-line" data-delay="3200">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">03 / Visuals</span>
-                <a href="galleries.html" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg glitch-target">Gallery</a>
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">03 / Documentation</span>
+                <a href="#" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg glitch-target">Writings</a>
             </div>
 
             <div class="group typewriter-line" data-delay="4000">
@@ -437,28 +443,33 @@
         updateVUMeter();
 
         // --- GLITCH TEXT FEATURE ---
-        const glitchChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$!@#%^&*()-_=+[{]}|;:',.<>/?¿¥¤†‡";
+        const glitchChars = "ｦｧｨｩｪｫｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ23457890ZXV<>+?@#$%&";
         
         function glitchElement(el) {
             const originalText = el.innerText;
-            let iterations = 0;
-            const maxIterations = originalText.length;
+            el.classList.add('glitch-active');
+            
+            let frame = 0;
+            const maxFrames = 15;
             
             const interval = setInterval(() => {
                 el.innerText = originalText
                     .split("")
                     .map((char, index) => {
-                        if (index < iterations) return originalText[index];
-                        return glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                        if (Math.random() > 0.4) {
+                            return glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                        }
+                        return char;
                     })
                     .join("");
 
-                if (iterations >= maxIterations) {
+                frame++;
+                if (frame >= maxFrames) {
                     clearInterval(interval);
                     el.innerText = originalText;
+                    el.classList.remove('glitch-active');
                 }
-                iterations += 1 / 2;
-            }, 30);
+            }, 60);
         }
 
         function triggerRandomGlitch() {
@@ -468,7 +479,8 @@
                 const target = targets[Math.floor(Math.random() * targets.length)];
                 glitchElement(target);
             }
-            setTimeout(triggerRandomGlitch, 4000 + Math.random() * 6000);
+            // ADJUSTED FREQUENCY: 7-10 seconds interval
+            setTimeout(triggerRandomGlitch, 7000 + Math.random() * 3000);
         }
 
         setTimeout(triggerRandomGlitch, 6000);
@@ -480,6 +492,8 @@
         const virtualFiles = {
             'begotten_1989.log': "LINKING_TO_EXTERNAL_ARCHIVE...",
             'bohemian_grove.log': "REDIRECTING_TO_EXTERNAL_ARCHIVE...",
+            'come_with.log': "REDIRECTING_TO_EXTERNAL_ARCHIVE...",
+            'uniform.log': "REDIRECTING_TO_EXTERNAL_ARCHIVE...",
             'who_is_he.log': "LOCATING_SUBJECT_DATA...",
             'secret_projects.dir': "[HIDDEN_FOLDER] - MK_ULTRA_SUBJECTS, SOCIAL_EXPERIMENT, SHOOTERS_SALOON.zip, LYME_DISEASE_BIOWEAPON"
         };
@@ -565,6 +579,12 @@
                     } else if (arg === 'bohemian_grove.log') {
                         writeToConsole("LAUNCHING EXTERNAL LINK...", "var(--crimson)");
                         window.open("https://youtu.be/_lQGAltQ5Jg?si=5HC7g07gLzcvIDAK&t=4470", "_blank");
+                    } else if (arg === 'come_with.log') {
+                        writeToConsole("LAUNCHING EXTERNAL LINK...", "var(--crimson)");
+                        window.open("https://youtu.be/2e5nibpOLwo?si=53hnYt2zh1DkD0KX&t=282", "_blank");
+                    } else if (arg === 'uniform.log') {
+                        writeToConsole("LAUNCHING EXTERNAL LINK...", "var(--crimson)");
+                        window.open("https://youtu.be/7hcDZCKxRiA?si=t7S0IEPtzdFewiaE&t=1005", "_blank");
                     } else if (arg === 'who_is_he.log') {
                         writeToConsole("REDIRECTING TO EXTERNAL ARCHIVE...", "var(--crimson)");
                         window.open("https://www.youtube.com/watch?v=qTjjcyg1POk", "_blank");
@@ -607,19 +627,6 @@
             if (isLockdown) return;
             const msg = diagMessages[Math.floor(Math.random() * diagMessages.length)];
             addLog(msg);
-
-            if (msg === "HEARTBEAT_FOUND") {
-                setTimeout(() => {
-                    addLog("UNKNOWN_USER_DETECTED", "#991b1b");
-                }, 1500);
-            }
-            
-            if (Math.random() > 0.85) {
-                setTimeout(() => {
-                    addLog("FATAL: BUFFER_OVERFLOW");
-                }, 400);
-            }
-
             setTimeout(runRandomDiag, 1500 + Math.random() * 3500);
         }
 
