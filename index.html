@@ -196,19 +196,41 @@
             font-family: 'Space Mono', monospace;
         }
 
-        /* Skip Year Video Overlay */
+        /* Windowed Video Overlay for SKIP_YEAR */
         #video-overlay {
             position: fixed;
             inset: 0;
-            background: black;
+            background: rgba(0, 0, 0, 0.85); /* Dark transparent background */
             z-index: 2000;
             display: none;
             justify-content: center;
             align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .video-window {
+            width: 80%;
+            max-width: 900px;
+            background: #000;
+            border: 1px solid #333;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 0 10px rgba(153, 27, 27, 0.2);
+            position: relative;
+            padding: 4px;
+        }
+        .video-window-header {
+            background: #111;
+            border-bottom: 1px solid #222;
+            padding: 4px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9px;
+            color: #555;
+            text-transform: uppercase;
         }
         #video-player {
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: auto;
+            display: block;
         }
 
         /* Analog VU Meter */
@@ -238,9 +260,18 @@
     <div id="boot-screen"></div>
     <div class="scanline" id="scanline"></div>
 
-    <!-- Video Overlay for SKIP_YEAR -->
+    <!-- Windowed Video Overlay for SKIP_YEAR -->
     <div id="video-overlay">
-        <video id="video-player" src="oneyear.mp4"></video>
+        <div class="video-window">
+            <div class="video-window-header">
+                <div class="flex items-center gap-2">
+                    <div class="w-1.5 h-1.5 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b] animate-pulse"></div>
+                    <span class="opacity-60">UPLINK_STREAM_ACTIVE</span>
+                </div>
+                <span>STATUS: ARCHIVING_TIME</span>
+            </div>
+            <video id="video-player" src="oneyear.mp4"></video>
+        </div>
     </div>
 
     <div id="console-container">
@@ -361,7 +392,7 @@
             { name: "LAST DONUT OF THE NIGHT", url: "audio/30 Last Donut of the Night.mp3" },
             { name: "DONUTS (INTRO)", url: "audio/31 Donuts (Intro).mp3" },
             { name: "I PROMISE YA", url: "audio/I Promise Ya.mp3" },
-            { name: "SPRAY 4 ME", url: "audio/Gucci Mane - Spray 4 ME (Prod By DPBEATS).mp3" },
+            { name: "SPRAY 4 ME", url: "audio/Gucci Mane - Spray 4 Me (Prod By DPBEATS).mp3" },
             { name: "IT JUST DOESNT MATTER", url: "audio/07 - It Just Doesnt Matter.mp3" },
             { name: "INSIDE OUTSIDE", url: "audio/01 - Inside Outside.wav.mp3" },
             { name: "SWITCHIN LANES", url: "audio/switchin lanes.mp3" },
@@ -546,9 +577,19 @@
                 writeToConsole(`> ${rawInput.toUpperCase()}`, "#aaa");
 
                 if (rawInput.toUpperCase() === 'SKIP_YEAR') {
-                    videoOverlay.style.display = 'flex';
-                    videoPlayer.play();
-                    videoPlayer.onended = () => { videoOverlay.style.display = 'none'; };
+                    writeToConsole("ACTIVATING TIME_WARP", "var(--crimson)");
+                    setTimeout(() => {
+                        writeToConsole("SKIPPING_TIME, 1 YEAR", "var(--crimson)");
+                        setTimeout(() => {
+                            videoOverlay.style.display = 'flex';
+                            videoPlayer.play();
+                        }, 1000);
+                    }, 800);
+                    
+                    videoPlayer.onended = () => { 
+                        videoOverlay.style.display = 'none'; 
+                        writeToConsole("TIME_WARP_COMPLETE. TARGET_YEAR: 2027.", "#00ff00");
+                    };
                     return;
                 }
 
