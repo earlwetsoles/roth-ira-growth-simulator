@@ -116,7 +116,6 @@
             }
             .diag-box { left: 1rem; height: 110px; }
             .audio-box { right: 1rem; height: 130px; }
-            #diag-logs { height: 40px !important; }
         }
 
         .widget-header {
@@ -197,6 +196,21 @@
             font-family: 'Space Mono', monospace;
         }
 
+        /* Skip Year Video Overlay */
+        #video-overlay {
+            position: fixed;
+            inset: 0;
+            background: black;
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        #video-player {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
         /* Analog VU Meter */
         .vu-meter-container {
             display: flex;
@@ -213,24 +227,21 @@
             height: 2px;
             transition: height 0.08s ease-out; 
         }
-        .vu-bar.active {
-            background: #555;
-        }
-        .vu-bar.peak {
-            background: var(--crimson);
-            box-shadow: 0 0 4px var(--crimson);
-        }
+        .vu-bar.active { background: #555; }
+        .vu-bar.peak { background: var(--crimson); box-shadow: 0 0 4px var(--crimson); }
 
-        .glitch-active {
-            color: var(--crimson) !important;
-            font-weight: bold;
-        }
+        .glitch-active { color: var(--crimson) !important; font-weight: bold; }
     </style>
 </head>
 <body class="p-8 md:p-24 pb-48 md:pb-24">
 
     <div id="boot-screen"></div>
     <div class="scanline" id="scanline"></div>
+
+    <!-- Video Overlay for SKIP_YEAR -->
+    <div id="video-overlay">
+        <video id="video-player" src="oneyear.mp4"></video>
+    </div>
 
     <div id="console-container">
         <div id="console-output"></div>
@@ -275,7 +286,6 @@
         </div>
 
         <div class="vu-meter-container" id="vu-meter"></div>
-
         <audio id="main-audio" preload="auto" crossOrigin="anonymous"></audio>
     </div>
 
@@ -404,6 +414,8 @@
         const audioStatusText = document.getElementById('audio-status-text');
         const diagLogs = document.getElementById('diag-logs');
         const vuContainer = document.getElementById('vu-meter');
+        const videoOverlay = document.getElementById('video-overlay');
+        const videoPlayer = document.getElementById('video-player');
 
         let currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
         let siteBootTime = Date.now();
@@ -419,13 +431,11 @@
                 source = audioCtx.createMediaElementSource(mainAudio);
                 source.connect(analyser);
                 analyser.connect(audioCtx.destination);
-                
                 analyser.fftSize = 128; 
                 analyser.smoothingTimeConstant = 0.82;
-                const bufferLength = analyser.frequencyBinCount;
-                dataArray = new Uint8Array(bufferLength);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
                 isAudioContextInitialized = true;
-            } catch(e) { console.warn("Audio Context blocked or failed."); }
+            } catch(e) { console.warn("Audio Context failed."); }
         }
 
         const numBars = 16;
@@ -449,17 +459,13 @@
                     if (val > 230) bar.classList.add('peak'); else bar.classList.remove('peak');
                 }
             } else {
-                bars.forEach(bar => {
-                    bar.style.height = '2px';
-                    bar.classList.remove('active', 'peak');
-                });
+                bars.forEach(bar => { bar.style.height = '2px'; bar.classList.remove('active', 'peak'); });
             }
             requestAnimationFrame(updateVUMeter);
         }
         updateVUMeter();
 
         const glitchChars = "ｦｧｨｩｪｫｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ23457890ZXV<>+?@#$%&";
-        
         function glitchElement(el) {
             const originalText = el.innerText;
             el.classList.add('glitch-active');
@@ -467,12 +473,7 @@
             const maxFrames = 15;
             const interval = setInterval(() => {
                 el.innerText = originalText.split("").map(char => Math.random() > 0.4 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : char).join("");
-                frame++;
-                if (frame >= maxFrames) {
-                    clearInterval(interval);
-                    el.innerText = originalText;
-                    el.classList.remove('glitch-active');
-                }
+                if (++frame >= maxFrames) { clearInterval(interval); el.innerText = originalText; el.classList.remove('glitch-active'); }
             }, 60);
         }
 
@@ -495,10 +496,12 @@
             'who_is_he.log': "LOCATING_SUBJECT_DATA...",
             'peptides.log': "CONNECTING_TO_LIVE_FEED...",
             'gravedigger_mountain.log': "INDEXING_AUDIO_BURIAL...",
+            'woody_allen.log': "REDIRECTING_TO_EXTERNAL_ARCHIVE...",
             'secret_projects.dir': "[HIDDEN_FOLDER] - MK_ULTRA_SUBJECTS, SOCIAL_EXPERIMENT, SHOOTERS_SALOON.zip, LYME_DISEASE_BIOWEAPON"
         };
 
         const honeypotItems = ["MK_ULTRA_SUBJECTS", "SOCIAL_EXPERIMENT", "SHOOTERS_SALOON.zip", "LYME_DISEASE_BIOWEAPON"];
+        let isLockdown = false;
 
         function writeToConsole(text, color = "#666") {
             const line = document.createElement('div');
@@ -510,24 +513,12 @@
             consoleOutput.scrollTop = consoleOutput.scrollHeight;
         }
 
-        let isLockdown = false;
-
         function triggerLockdown() {
             if (isLockdown) return;
             isLockdown = true;
             consoleContainer.classList.add('lockdown');
             document.getElementById('input-row').style.visibility = 'hidden';
-            const messages = [
-                "!!! SECURITY BREACH DETECTED !!!",
-                "UNAUTHORIZED ACCESS TO CLASSIFIED ASSETS",
-                "TRACING LOCATION OF USER...",
-                `LOCAL_IP: 192.168.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`,
-                "GEO_COORDS_LOCKED: [ENCRYPTED]",
-                "UPLINKING TO NEAREST FIELD OFFICE...",
-                "DISPATCHING AGENTS IMMEDIATELY.",
-                "TERMINAL WILL SELF-DESTRUCT IN T-60s",
-                "DO NOT ATTEMPT TO LEAVE YOUR PREMISES."
-            ];
+            const messages = ["!!! SECURITY BREACH DETECTED !!!", "UNAUTHORIZED ACCESS TO CLASSIFIED ASSETS", "TRACING LOCATION OF USER...", "DISPATCHING AGENTS IMMEDIATELY."];
             let i = 0;
             const msgInterval = setInterval(() => {
                 if (i < messages.length) { writeToConsole(messages[i], "#ff0000"); i++; }
@@ -554,20 +545,28 @@
                 consoleInput.value = '';
                 writeToConsole(`> ${rawInput.toUpperCase()}`, "#aaa");
 
+                if (rawInput.toUpperCase() === 'SKIP_YEAR') {
+                    videoOverlay.style.display = 'flex';
+                    videoPlayer.play();
+                    videoPlayer.onended = () => { videoOverlay.style.display = 'none'; };
+                    return;
+                }
+
                 if(cmd === 'help') {
-                    writeToConsole("AVAILABLE COMMANDS: LIST, READ [FILE], WHOAMI");
+                    writeToConsole("AVAILABLE COMMANDS: LIST, READ [FILE], WHOAMI, SKIP_YEAR");
                 }
                 else if(cmd === 'list') {
                     Object.keys(virtualFiles).forEach(f => writeToConsole(` - ${f}`, "#888"));
                 }
                 else if(cmd === 'read') {
-                    if (!arg) { writeToConsole("ERR: NO FILE SPECIFIED."); }
+                    if (!arg) writeToConsole("ERR: NO FILE SPECIFIED.");
                     else if (arg === 'begotten_1989.log') window.open("https://youtu.be/vvwGtlzTKYQ?si=TgJbAZ8xg-pnXRG8&t=75", "_blank");
                     else if (arg === 'bohemian_grove.log') window.open("https://youtu.be/_lQGAltQ5Jg?si=5HC7g07gLzcvIDAK&t=4470", "_blank");
                     else if (arg === 'come_with.log') window.open("https://youtu.be/2e5nibpOLwo?si=53hnYt2zh1DkD0KX&t=282", "_blank");
                     else if (arg === 'who_is_he.log') window.open("https://www.youtube.com/watch?v=qTjjcyg1POk", "_blank");
                     else if (arg === 'peptides.log') window.open("https://www.youtube.com/live/-ncjnYkkCmo?si=j298dVo9jOXjmZrS&t=6280", "_blank");
                     else if (arg === 'gravedigger_mountain.log') window.open("https://www.youtube.com/watch?v=DPD_zSh6B1s&list=FLl-rijlbCE87N7NJ-mAhxDw&index=51", "_blank");
+                    else if (arg === 'woody_allen.log') window.open("https://youtu.be/7hcDZCKxRiA?si=pEKqFebii5f_HyJY&t=1005", "_blank");
                     else if (honeypotItems.some(item => arg.toUpperCase().includes(item.toUpperCase()))) triggerLockdown();
                     else if (virtualFiles[arg]) writeToConsole(`\n--- ${arg.toUpperCase()} ---\n${virtualFiles[arg]}\n`, "var(--crimson)");
                     else writeToConsole(`ERR: FILE '${arg}' NOT FOUND.`);
@@ -579,18 +578,13 @@
             }
         });
 
-        function addLog(text) {
-            const log = document.createElement('div');
-            log.innerText = `> ${text}`;
-            diagLogs.prepend(log);
-            if (diagLogs.children.length > 8) diagLogs.removeChild(diagLogs.lastChild);
-        }
-
-        const diagMessages = ["KERNEL_SYNC_OK", "IO_PORT_CLEARED", "TEMP_NOMINAL: 34C", "PACKET_DUMP_COMPLETE", "CACHE_CLEANUP_SUCESS", "PROXY_ROTATED", "ENCRYPTION_LAYER_STABLE", "AUTH_KEY_REGENERATED", "UPLINK_ENCRYPTED", "HEARTBEAT_FOUND", "EYE_TRACKING_ACTIVE", "VOICE_DATA_RECOVERED", "GEOLOCATION_PINNED", "ACCESS_DENIED_BY_ROOT", "REMOTE_SHELL_ESTABLISHED"];
-
+        const diagMessages = ["KERNEL_SYNC_OK", "IO_PORT_CLEARED", "TEMP_NOMINAL: 34C", "PACKET_DUMP_COMPLETE", "PROXY_ROTATED", "ENCRYPTION_LAYER_STABLE", "UPLINK_ENCRYPTED", "EYE_TRACKING_ACTIVE"];
         function runRandomDiag() {
             if (isLockdown) return;
-            addLog(diagMessages[Math.floor(Math.random() * diagMessages.length)]);
+            const log = document.createElement('div');
+            log.innerText = `> ${diagMessages[Math.floor(Math.random() * diagMessages.length)]}`;
+            diagLogs.prepend(log);
+            if (diagLogs.children.length > 8) diagLogs.removeChild(diagLogs.lastChild);
             setTimeout(runRandomDiag, 1500 + Math.random() * 3500);
         }
 
@@ -640,25 +634,9 @@
             } catch (e) { console.warn("Playback prevented."); }
         }
 
-        playBtn.onclick = () => {
-            if (mainAudio.paused) playAudio();
-            else { mainAudio.pause(); playBtn.innerText = "PLAY"; audioStatusText.innerText = "Paused"; }
-        };
-
-        skipBtn.onclick = () => {
-            let nextIndex;
-            do {
-                nextIndex = Math.floor(Math.random() * audioTracks.length);
-            } while (nextIndex === currentTrackIndex && audioTracks.length > 1);
-            currentTrackIndex = nextIndex;
-            loadTrack(currentTrackIndex);
-            playAudio();
-        };
-
-        muteBtn.onclick = () => {
-            mainAudio.muted = !mainAudio.muted;
-            muteBtn.innerText = mainAudio.muted ? "UNMUTE" : "MUTE";
-        };
+        playBtn.onclick = () => { if (mainAudio.paused) playAudio(); else { mainAudio.pause(); playBtn.innerText = "PLAY"; audioStatusText.innerText = "Paused"; } };
+        skipBtn.onclick = () => { currentTrackIndex = Math.floor(Math.random() * audioTracks.length); loadTrack(currentTrackIndex); playAudio(); };
+        muteBtn.onclick = () => { mainAudio.muted = !mainAudio.muted; muteBtn.innerText = mainAudio.muted ? "UNMUTE" : "MUTE"; };
 
         function seek(e) {
             if (!mainAudio.duration) return;
