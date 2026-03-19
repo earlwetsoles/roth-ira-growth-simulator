@@ -542,6 +542,7 @@
             line.innerText = text;
             consoleOutput.appendChild(line);
             consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            return line;
         }
 
         function triggerLockdown() {
@@ -613,7 +614,22 @@
                     else writeToConsole(`ERR: FILE '${arg}' NOT FOUND.`);
                 }
                 else if(cmd === 'whoami') {
-                    writeToConsole("SESSION_ID: " + Math.random().toString(16).substring(2, 10).toUpperCase() + "\nIDENTITY: UNKNOWN_GUEST_01\nAUTH_LEVEL: RESTRICTED");
+                    writeToConsole("SESSION_ID: " + Math.random().toString(16).substring(2, 10).toUpperCase());
+                    const identityLine = writeToConsole("IDENTITY: UNKNOWN_GUEST_01");
+                    
+                    // Constantly flicker the identity text
+                    const baseText = "IDENTITY: ";
+                    const target = "UNKNOWN_GUEST_01";
+                    setInterval(() => {
+                        if (consoleContainer.style.display === 'flex') {
+                            identityLine.innerText = baseText + target.split("").map(char => 
+                                Math.random() > 0.8 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : char
+                            ).join("");
+                        }
+                    }, 80);
+
+                    writeToConsole("AUTH_LEVEL: RESTRICTED");
+                    writeToConsole("STATUS: BEING_WATCHED", "var(--crimson)");
                 }
                 else writeToConsole("ERR: CMD NOT FOUND.");
             }
