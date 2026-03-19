@@ -133,7 +133,7 @@
         .audio-btn { background: none; border: none; color: #444; cursor: pointer; padding: 0; transition: color 0.2s; }
         .audio-btn:hover { color: var(--terminal-off-white); }
 
-        /* Terminal Cursor Styling */
+        /* Terminal Cursor Styling - Added cursor pointer and active scale for tactile feel */
         .terminal-cursor {
             display: inline-block;
             width: 8px;
@@ -141,6 +141,19 @@
             background-color: var(--crimson);
             animation: blink 1s step-end infinite;
             vertical-align: middle;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        /* Larger hit area for mobile tap */
+        .terminal-cursor::after {
+            content: '';
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+        }
+
+        .terminal-cursor:active {
+            transform: scale(0.9);
         }
 
         @keyframes blink {
@@ -371,7 +384,7 @@
         </section>
 
         <footer class="mt-24 md:mt-32 pt-8 border-t border-[#111] typewriter-line" data-delay="4800">
-            <div class="terminal-cursor"></div>
+            <div class="terminal-cursor" id="terminal-trigger"></div>
             <p class="text-[8px] mt-4 opacity-20">PRESS '~' FOR COMMAND INTERFACE</p>
         </footer>
     </main>
@@ -408,7 +421,7 @@
             { name: "LAST DONUT OF THE NIGHT", url: "audio/30 Last Donut of the Night.mp3" },
             { name: "DONUTS (INTRO)", url: "audio/31 Donuts (Intro).mp3" },
             { name: "I PROMISE YA", url: "audio/I Promise Ya.mp3" },
-            { name: "SPRAY 4 ME", url: "audio/Gucci Mane - Spray 4 Me (Prod By DPBEATS).mp3" },
+            { name: "SPRAY 4 ME", url: "audio/Gucci Mane - Spray 4 ME (Prod By DPBEATS).mp3" },
             { name: "IT JUST DOESNT MATTER", url: "audio/07 - It Just Doesnt Matter.mp3" },
             { name: "INSIDE OUTSIDE", url: "audio/01 - Inside Outside.wav.mp3" },
             { name: "SWITCHIN LANES", url: "audio/switchin lanes.mp3" },
@@ -465,6 +478,7 @@
         const videoPlayer = document.getElementById('video-player');
         const videoTitle = document.getElementById('video-title');
         const videoCloseBtn = document.getElementById('video-close-btn');
+        const terminalTrigger = document.getElementById('terminal-trigger');
 
         let currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
         let siteBootTime = Date.now();
@@ -622,13 +636,27 @@
             }, 1000);
         }
 
-        window.addEventListener('keydown', (e) => {
+        // Toggle terminal function shared by Key and Click
+        function toggleTerminal() {
             if (isLockdown) return;
+            const isVisible = consoleContainer.style.display === 'flex';
+            consoleContainer.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible) {
+                // Short delay to ensure it's visible before focusing
+                setTimeout(() => consoleInput.focus(), 10);
+            }
+        }
+
+        // Click trigger on the blinking red box
+        terminalTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleTerminal();
+        });
+
+        window.addEventListener('keydown', (e) => {
             if (e.key === '~' || e.key === '`') {
                 e.preventDefault();
-                const isVisible = consoleContainer.style.display === 'flex';
-                consoleContainer.style.display = isVisible ? 'none' : 'flex';
-                if (!isVisible) consoleInput.focus();
+                toggleTerminal();
             }
         });
 
@@ -659,7 +687,7 @@
                 else if(cmd === 'list') {
                     Object.keys(virtualFiles).forEach(f => writeToConsole(` - ${f}`, "#888"));
                 }
-                else if(cmd === 'open') { // Changed from 'read'
+                else if(cmd === 'open') {
                     if (!arg) {
                         writeToConsole("ERR: NO FILE SPECIFIED.");
                         return;
@@ -685,7 +713,6 @@
                     writeToConsole(`REMOTE_IP: ${userData.ip}`);
                     writeToConsole(`LOCATION: ${userData.city.toUpperCase()}, ${userData.region.toUpperCase()}`);
                     writeToConsole(`UPLINK: ${userData.isp.toUpperCase()}`);
-                    // Removed SESSION_ID line
                     
                     const identityLine = writeToConsole("IDENTITY: UNKNOWN_GUEST_01");
                     const baseText = "IDENTITY: ";
@@ -704,7 +731,6 @@
             }
         });
 
-        // New Logic for Sys_Diag logs
         const diagPool = [
             "KERNEL_SYNC_OK", 
             "PACKET_DUMP_COMPLETE", 
@@ -724,7 +750,6 @@
         function runRandomDiag() {
             if (isLockdown) return;
             
-            // Random chance for the heartbeat sequence
             if (Math.random() > 0.8) {
                 addDiagLine("HEARTBEAT DETECTED IN DIRECTORY");
                 setTimeout(() => addDiagLine("UNKNOWN_USER DETECTED", "var(--crimson)"), 800);
@@ -737,12 +762,9 @@
         }
 
         function initDiagSequence() {
-            // First lines as requested
             setTimeout(() => addDiagLine("FACECAM_ON", "var(--crimson)"), 500);
             setTimeout(() => addDiagLine("EYE_TRACKING_ACTIVE", "var(--crimson)"), 1500);
             setTimeout(() => addDiagLine("PING_LOCATION..."), 3500);
-            
-            // Start the regular random noise after initial clues
             setTimeout(runRandomDiag, 6000);
         }
 
