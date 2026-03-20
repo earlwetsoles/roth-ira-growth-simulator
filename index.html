@@ -145,16 +145,6 @@
             position: relative;
         }
         
-        .terminal-cursor::after {
-            content: '';
-            position: absolute;
-            top: -10px; left: -10px; right: -10px; bottom: -10px;
-        }
-
-        .terminal-cursor:active {
-            transform: scale(0.9);
-        }
-
         @keyframes blink {
             from, to { opacity: 1; }
             50% { opacity: 0; }
@@ -175,16 +165,6 @@
             font-size: 12px;
             color: var(--terminal-off-white);
             max-height: 50vh;
-        }
-        
-        #console-container.lockdown {
-            animation: lockdown-flash 0.5s infinite;
-            pointer-events: none;
-        }
-
-        @keyframes lockdown-flash {
-            0%, 100% { background: #000; border-top-color: var(--crimson); }
-            50% { background: #300; border-top-color: #ff0000; }
         }
 
         #console-output {
@@ -208,7 +188,7 @@
             font-family: 'Space Mono', monospace;
         }
 
-        /* Windowed Video Overlay */
+        /* Video Overlay */
         #video-overlay {
             position: fixed;
             inset: 0;
@@ -224,7 +204,7 @@
             max-width: 900px;
             background: #000;
             border: 1px solid #333;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 0 10px rgba(153, 27, 27, 0.2);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
             position: relative;
             padding: 4px;
         }
@@ -249,14 +229,11 @@
             color: var(--crimson);
             font-weight: bold;
         }
-        .close-video:hover {
-            color: #ff0000;
-        }
         .close-video.hidden {
             display: none !important;
         }
 
-        /* Analog VU Meter */
+        /* VU Meter */
         .vu-meter-container {
             display: flex;
             gap: 2px;
@@ -274,14 +251,12 @@
         }
         .vu-bar.active { background: #555; }
         .vu-bar.peak { background: var(--crimson); box-shadow: 0 0 4px var(--crimson); }
-
-        .glitch-active { color: var(--crimson) !important; font-weight: bold; }
     </style>
 </head>
 <body class="p-8 md:p-24 pb-48 md:pb-24">
 
     <div id="boot-screen"></div>
-    <div class="scanline" id="scanline"></div>
+    <div class="scanline"></div>
 
     <div id="video-overlay">
         <div class="video-window">
@@ -291,7 +266,7 @@
                     <span id="video-status-text" class="opacity-60">UPLINK_STREAM_ACTIVE</span>
                 </div>
                 <div class="flex gap-4">
-                    <span id="video-title">STATUS: ARCHIVING_TIME</span>
+                    <span id="video-title">STATUS: IDLE</span>
                     <span class="close-video" id="video-close-btn" onclick="closeVideoPlayer()">[X] CLOSE</span>
                 </div>
             </div>
@@ -301,12 +276,13 @@
 
     <div id="console-container">
         <div id="console-output"></div>
-        <div class="console-input-row" id="input-row">
+        <div class="console-input-row">
             <span>ARCH_OS:</span>
             <input type="text" id="console-input" spellcheck="false" autocomplete="off" placeholder="type 'help'...">
         </div>
     </div>
 
+    <!-- Widgets -->
     <div class="widget-box diag-box" id="diag-widget">
         <div class="widget-header">
             <span class="widget-title">SYS_DIAG</span>
@@ -324,15 +300,15 @@
             <span class="widget-title">AUDIO</span>
             <span id="current-time" class="text-white opacity-60">0:00</span> 
         </div>
-        <div class="mb-1 truncate text-white opacity-80" id="track-name">SYNCING_REPOSITORY...</div>
+        <div class="mb-1 truncate text-white opacity-80" id="track-name">INITIALIZING...</div>
         <div class="progress-container" id="progress-area">
             <div class="progress-bar" id="progress-bar"></div>
         </div>
         
         <div class="audio-controls">
             <div class="hidden md:flex items-center gap-2">
-                <div id="audio-status-dot" class="w-1.5 h-1.5 bg-red-800 rounded-full animate-pulse"></div>
-                <span id="audio-status-text" class="text-[7px] uppercase tracking-tighter opacity-50">Safe Mode</span>
+                <div class="w-1.5 h-1.5 bg-red-800 rounded-full animate-pulse"></div>
+                <span class="text-[7px] uppercase tracking-tighter opacity-50">Safe Mode</span>
             </div>
             <div class="flex gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-end">
                 <button class="audio-btn font-bold text-white" id="play-btn">PLAY</button>
@@ -342,41 +318,42 @@
         </div>
 
         <div class="vu-meter-container" id="vu-meter"></div>
-        <audio id="main-audio" preload="auto" crossOrigin="anonymous"></audio>
+        <audio id="main-audio" crossOrigin="anonymous"></audio>
     </div>
 
+    <!-- Main Content -->
     <main id="app-content" class="max-w-2xl relative z-20 opacity-0">
         <header class="mb-12 md:mb-20">
             <div class="flex items-center gap-3 mb-4 typewriter-line" data-delay="0">
-                <div id="header-pulse" class="w-2 h-2 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b] animate-pulse"></div>
-                <h1 class="text-white text-xl tracking-tighter glitch-target" id="site-title">ARCHIVE_01</h1>
+                <div class="w-2 h-2 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b] animate-pulse"></div>
+                <h1 class="text-white text-xl tracking-tighter">ARCHIVE_01</h1>
             </div>
         </header>
 
         <section class="space-y-8 md:space-y-12">
             <div class="group typewriter-line" data-delay="1600">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">01 / Utilities</span>
-                <a href="#" class="link-item w-full block py-2 text-lg glitch-target">Web Tools</a>
+                <a href="utilities.html" class="link-item w-full block py-2 text-lg">Web Tools</a>
             </div>
 
             <div class="group typewriter-line" data-delay="2400">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">02 / Visuals</span>
-                <a href="#" class="link-item w-full block py-2 text-lg glitch-target">Gallery</a>
+                <a href="galleries.html" class="link-item w-full block py-2 text-lg">Gallery</a>
             </div>
 
             <div class="group typewriter-line" data-delay="3200">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">03 / Documentation</span>
-                <a href="#" class="link-item w-full block py-2 text-lg glitch-target">Writings</a>
+                <a href="#" class="link-item w-full block py-2 text-lg">Writings</a>
             </div>
 
             <div class="group typewriter-line" data-delay="4000">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">04 / Network</span>
                 <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <a href="#" class="link-item py-2 text-sm glitch-target">CSFloat</a>
-                    <a href="#" class="link-item py-2 text-sm glitch-target">iNaturalist</a>
-                    <a href="#" class="link-item py-2 text-sm glitch-target">Letterboxd</a>
-                    <a href="#" class="link-item py-2 text-sm glitch-target">LighterPack</a>
-                    <a href="#" class="link-item py-2 text-sm glitch-target">Twitch</a>
+                    <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm">CSFloat</a>
+                    <a href="https://www.inaturalist.org/observations?place_id=any&user_id=jiwt&verifiable=any" target="_blank" class="link-item py-2 text-sm">iNaturalist</a>
+                    <a href="https://letterboxd.com/Jiwt/" target="_blank" class="link-item py-2 text-sm">Letterboxd</a>
+                    <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm">LighterPack</a>
+                    <a href="https://twitch.tv/Jiwt" target="_blank" class="link-item py-2 text-sm">Twitch</a>
                 </div>
             </div>
         </section>
@@ -388,28 +365,18 @@
     </main>
 
     <script>
-        // CONFIGURATION: Set these to your GitHub repo paths
-        const REPO_BASE = "./data/"; // Use relative paths for local dev, or full raw.githubusercontent URLs
+        const REPO_BASE = "./data/"; 
         const TRACKS_JSON_URL = REPO_BASE + "tracks.json";
         const FILES_JSON_URL = REPO_BASE + "terminal_files.json";
 
-        let userData = { ip: 'SCANNING...', city: 'REDACTED', region: 'REDACTED', isp: 'REDACTED' };
         let audioTracks = [];
         let virtualFiles = {};
-        
-        const bootData = [
-            "Initializing BIOS...", "Verifying CPU...", "Memory Test: 16384MB OK",
-            "SATA Primary Master: 500GB SSD", "USB Controller Initialized...",
-            "Network Card Found [MAC: 00:1A:2B:3C:4D:5E]", "DHCP Handshake... OK",
-            "Loading Kernel ARCH_OS_01...", "Mounting /dev/sda1...",
-            "Encryption Layer: AES-256 Enabled", "Checking Archive Integrity...",
-            "Establishing GitHub Uplink...", "Fetching Tracks JSON...", "Fetching Terminal Assets...",
-            "Checksum 0xAF43... PASSED", "Loading UI Assets...",
-            "Starting Media Engine...", "Redirecting I/O...",
-            "SUCCESS: System Boot Sequence Complete."
-        ];
+        let currentTrackIndex = 0;
+        let siteBootTime = Date.now();
+        let audioCtx, analyser, source, dataArray, isAudioContextInitialized = false;
+        let userData = { ip: 'SCANNING...', city: 'REDACTED', region: 'REDACTED', isp: 'REDACTED' };
 
-        // UI Element References
+        // Elements
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
         const skipBtn = document.getElementById('skip-btn');
@@ -423,39 +390,17 @@
         const videoPlayer = document.getElementById('video-player');
         const videoTitle = document.getElementById('video-title');
         const videoCloseBtn = document.getElementById('video-close-btn');
-        const terminalTrigger = document.getElementById('terminal-trigger');
         const consoleContainer = document.getElementById('console-container');
         const consoleInput = document.getElementById('console-input');
         const consoleOutput = document.getElementById('console-output');
 
-        let currentTrackIndex = 0;
-        let siteBootTime = Date.now();
-        let isLockdown = false;
-        let audioCtx, analyser, source, dataArray, isAudioContextInitialized = false;
+        const bootData = [
+            "Initializing BIOS...", "Verifying CPU...", "Memory Test: 16384MB OK",
+            "Establishing GitHub Uplink...", "Fetching Metadata...", "Checksum 0xAF43... PASSED",
+            "SUCCESS: System Boot Sequence Complete."
+        ];
 
-        // --- DATA SYNC LOGIC ---
-        async function syncArchiveData() {
-            try {
-                const [tracksRes, filesRes] = await Promise.all([
-                    fetch(TRACKS_JSON_URL).catch(e => ({ json: () => [] })),
-                    fetch(FILES_JSON_URL).catch(e => ({ json: () => ({}) }))
-                ]);
-                
-                audioTracks = await tracksRes.json();
-                virtualFiles = await filesRes.json();
-
-                if (audioTracks.length > 0) {
-                    currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
-                    loadTrack(currentTrackIndex);
-                } else {
-                    trackName.innerText = "NO_TRACKS_FOUND";
-                }
-                addDiagLine("DATA_SYNC_SUCCESS");
-            } catch (e) {
-                console.error("Sync Failed:", e);
-                addDiagLine("SYNC_ERROR: REVERTING_LOCAL", "var(--crimson)");
-            }
-        }
+        // --- DATA LOGIC ---
 
         async function fetchUserLocation() {
             try {
@@ -467,10 +412,152 @@
                     region: data.region || 'REDACTED',
                     isp: data.org || 'REDACTED'
                 };
-            } catch (e) { console.warn("Location fetch blocked."); }
+            } catch (e) { console.warn("Location check failed."); }
         }
 
-        // --- AUDIO ENGINE ---
+        async function initializeData() {
+            try {
+                const [tracksRes, filesRes] = await Promise.all([
+                    fetch(TRACKS_JSON_URL).then(res => res.json()).catch(() => []),
+                    fetch(FILES_JSON_URL).then(res => res.json()).catch(() => ({}))
+                ]);
+                audioTracks = tracksRes;
+                virtualFiles = filesRes;
+
+                if (audioTracks.length > 0) {
+                    currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
+                    loadTrack(currentTrackIndex);
+                }
+                addDiagLine("DATA_MAPS_LOADED");
+                // Special Diagnostic Lines on successful boot
+                setTimeout(() => addDiagLine("FACECAM_ON", "var(--crimson)"), 500);
+                setTimeout(() => addDiagLine("EYE_TRACKING_SYNCED"), 1000);
+                setTimeout(() => addDiagLine("PING_LOCATION"), 1500);
+            } catch (e) {
+                addDiagLine("SYNC_ERROR: RECHECK_DATA_FOLDER", "var(--crimson)");
+            }
+        }
+
+        function loadTrack(index) {
+            const track = audioTracks[index];
+            if (!track) return;
+            mainAudio.src = track.url;
+            trackName.innerText = track.name.toUpperCase();
+        }
+
+        // --- TERMINAL ENGINE ---
+
+        function writeToConsole(text, color = "#666") {
+            const line = document.createElement('div');
+            line.style.color = color;
+            line.style.marginBottom = "2px";
+            line.style.whiteSpace = "pre-wrap"; 
+            line.innerText = text;
+            consoleOutput.appendChild(line);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        consoleInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const rawInput = consoleInput.value.trim();
+                const parts = rawInput.toLowerCase().split(' ');
+                const cmd = parts[0];
+                const arg = parts[1];
+                consoleInput.value = '';
+                writeToConsole(`> ${rawInput.toUpperCase()}`, "#aaa");
+
+                if(cmd === 'help') {
+                    writeToConsole("COMMANDS: LIST, OPEN [FILENAME], WHOAMI, TIMEWARP");
+                } else if(cmd === 'list') {
+                    const keys = Object.keys(virtualFiles);
+                    if (keys.length === 0) {
+                        writeToConsole("NO_FILES_SYNCED_IN_DIRECTORY.", "var(--crimson)");
+                    } else {
+                        keys.forEach(f => writeToConsole(` - ${f}`, "#888"));
+                    }
+                } else if(cmd === 'timewarp') {
+                    openInternalVideo('./log clips/oneyear.mp4', 'TIMEWARP_ACTIVE', true);
+                    writeToConsole("TIME_WARP_PROTOCOL_INITIATED.", "var(--crimson)");
+                } else if(cmd === 'whoami') {
+                    writeToConsole(`REMOTE_IP: ${userData.ip}`);
+                    writeToConsole(`CITY: ${userData.city.toUpperCase()}`);
+                    writeToConsole(`STATE: ${userData.region.toUpperCase()}`);
+                    writeToConsole(`PROVIDER: ${userData.isp.toUpperCase()}`);
+                } else if(cmd === 'open') {
+                    const file = virtualFiles[arg];
+                    if (file) {
+                        if (file.type === 'video') {
+                            openInternalVideo(file.url, arg);
+                            writeToConsole(`STREAMING: ${arg.toUpperCase()}`, "var(--crimson)");
+                        } else if (file.type === 'external') {
+                            window.open(file.url, '_blank');
+                            writeToConsole(`UPLINK_OPEN: ${arg.toUpperCase()}`, "var(--crimson)");
+                        } else {
+                            writeToConsole(`\n--- ${arg.toUpperCase()} ---\n${file.content}\n`, "var(--crimson)");
+                        }
+                    } else {
+                        writeToConsole(`ERR: '${arg}' NOT FOUND.`);
+                    }
+                } else {
+                    writeToConsole("ERR: UNKNOWN_CMD.");
+                }
+            }
+        });
+
+        // --- AUDIO SEEK LOGIC ---
+
+        function seek(e) {
+            if (!mainAudio.duration) return;
+            const rect = progressArea.getBoundingClientRect();
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const pos = (clientX - rect.left) / rect.width;
+            mainAudio.currentTime = Math.max(0, Math.min(1, pos)) * mainAudio.duration;
+        }
+
+        progressArea.addEventListener('mousedown', seek);
+        let isSeeking = false;
+        progressArea.onmousedown = (e) => { isSeeking = true; seek(e); };
+        window.onmousemove = (e) => { if (isSeeking) seek(e); };
+        window.onmouseup = () => { isSeeking = false; };
+
+        // --- VIDEO PLAYER ---
+
+        function openInternalVideo(url, title = "ARCHIVE_FEED", uncloseable = false) {
+            mainAudio.pause();
+            playBtn.innerText = "PLAY";
+            videoTitle.innerText = `STATUS: ${title.toUpperCase()}`;
+            videoPlayer.src = url; 
+            videoOverlay.style.display = 'flex';
+            
+            if (uncloseable) {
+                videoCloseBtn.classList.add('hidden');
+            } else {
+                videoCloseBtn.classList.remove('hidden');
+            }
+            
+            videoPlayer.play();
+        }
+
+        function closeVideoPlayer() {
+            videoPlayer.pause();
+            videoPlayer.src = "";
+            videoOverlay.style.display = 'none';
+        }
+
+        videoPlayer.onended = () => {
+            closeVideoPlayer();
+        };
+
+        // --- MUSIC AUTO-NEXT ---
+
+        mainAudio.onended = () => {
+            currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
+            loadTrack(currentTrackIndex);
+            mainAudio.play();
+        };
+
+        // --- UI & DIAGNOSTICS ---
+
         function initAudioContext() {
             if (isAudioContextInitialized) return;
             try {
@@ -482,6 +569,7 @@
                 analyser.fftSize = 128; 
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
                 isAudioContextInitialized = true;
+                updateVUMeter();
             } catch(e) { console.warn("Audio Context error."); }
         }
 
@@ -507,14 +595,6 @@
             requestAnimationFrame(updateVUMeter);
         }
 
-        function loadTrack(index) {
-            const track = audioTracks[index];
-            if (!track) return;
-            mainAudio.src = track.url;
-            trackName.innerText = track.name.toUpperCase();
-            addDiagLine(`LOADING: ${track.name.toUpperCase()}`);
-        }
-
         playBtn.onclick = async () => { 
             initAudioContext();
             if (audioCtx?.state === 'suspended') await audioCtx.resume();
@@ -524,6 +604,7 @@
                 mainAudio.pause(); playBtn.innerText = "PLAY";
             }
         };
+
         skipBtn.onclick = () => {
             currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
             loadTrack(currentTrackIndex);
@@ -531,94 +612,24 @@
             playBtn.innerText = "PAUSE";
         };
 
-        // --- TERMINAL ENGINE ---
-        function writeToConsole(text, color = "#666") {
-            const line = document.createElement('div');
-            line.style.color = color;
-            line.style.marginBottom = "2px";
-            line.style.whiteSpace = "pre-wrap"; 
-            line.innerText = text;
-            consoleOutput.appendChild(line);
-            consoleOutput.scrollTop = consoleOutput.scrollHeight;
-            return line;
-        }
-
-        function toggleTerminal() {
-            if (isLockdown) return;
-            const isVisible = consoleContainer.style.display === 'flex';
-            consoleContainer.style.display = isVisible ? 'none' : 'flex';
-            if (!isVisible) setTimeout(() => consoleInput.focus(), 10);
-        }
-
-        consoleInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const rawInput = consoleInput.value.trim();
-                const parts = rawInput.toLowerCase().split(' ');
-                const cmd = parts[0];
-                const arg = parts[1];
-                consoleInput.value = '';
-                writeToConsole(`> ${rawInput.toUpperCase()}`, "#aaa");
-
-                if(cmd === 'help') {
-                    writeToConsole("COMMANDS: LIST, OPEN [FILENAME], WHOAMI, SYNC");
-                }
-                else if(cmd === 'list') {
-                    const keys = Object.keys(virtualFiles);
-                    if (keys.length === 0) writeToConsole("FILE_SYSTEM_EMPTY. RUN 'SYNC'");
-                    else keys.forEach(f => writeToConsole(` - ${f}`, "#888"));
-                }
-                else if(cmd === 'sync') {
-                    writeToConsole("RE-ESTABLISHING REPOSITORY CONNECTION...", "var(--crimson)");
-                    syncArchiveData().then(() => writeToConsole("SYNC_COMPLETE.", "green"));
-                }
-                else if(cmd === 'open') {
-                    const file = virtualFiles[arg];
-                    if (file) {
-                        if (file.type === 'video') {
-                            openInternalVideo(file.url, arg);
-                            writeToConsole(`STREAMING: ${arg.toUpperCase()}`, "var(--crimson)");
-                        } else if (file.type === 'audio') {
-                            mainAudio.src = file.url;
-                            trackName.innerText = arg.toUpperCase();
-                            mainAudio.play();
-                            writeToConsole(`PLAYING_EXTERNAL_SOURCE: ${arg.toUpperCase()}`, "var(--crimson)");
-                        } else {
-                            writeToConsole(`\n--- ${arg.toUpperCase()} ---\n${file.content}\n`, "var(--crimson)");
-                        }
-                    } else {
-                        writeToConsole(`ERR: '${arg}' NOT FOUND.`);
-                    }
-                }
-                else if(cmd === 'whoami') {
-                    writeToConsole(`REMOTE_IP: ${userData.ip}`);
-                    writeToConsole(`LOCATION: ${userData.city.toUpperCase()}`);
-                }
-                else writeToConsole("ERR: UNKNOWN_CMD.");
-            }
-        });
-
-        // --- BOOT & UTILITIES ---
-        function openInternalVideo(url, title = "ARCHIVE_FEED") {
-            mainAudio.pause();
-            playBtn.innerText = "PLAY";
-            videoTitle.innerText = `STATUS: ${title.toUpperCase()}`;
-            videoPlayer.src = url;
-            videoOverlay.style.display = 'flex';
-            videoPlayer.play();
-        }
-
-        function closeVideoPlayer() {
-            videoPlayer.pause();
-            videoOverlay.style.display = 'none';
-        }
-
         function addDiagLine(text, color = null) {
             const log = document.createElement('div');
             log.innerText = `> ${text}`;
             if (color) log.style.color = color;
             diagLogs.prepend(log);
-            if (diagLogs.children.length > 10) diagLogs.removeChild(diagLogs.lastChild);
+            if (diagLogs.children.length > 15) diagLogs.removeChild(diagLogs.lastChild);
         }
+
+        const spookyLines = [
+            () => addDiagLine("YOURSCREEN_IS_DIRTY"),
+            () => {
+                addDiagLine("HEARTBEAT DETECTED IN DIRECTORY");
+                setTimeout(() => addDiagLine("UNKNOWN_USER DETECTED", "var(--crimson)"), 800);
+            },
+            () => addDiagLine("UPLINK_UNSTABLE"),
+            () => addDiagLine("TRACING_INBOUND_REQUEST"),
+            () => addDiagLine("FILE_SYSTEM_BREACH_DETECTED", "var(--crimson)")
+        ];
 
         function runPostSequence() {
             const screen = document.getElementById('boot-screen');
@@ -644,11 +655,10 @@
                         }, 400);
                     }, 300);
                 }
-            }, 40);
+            }, 50);
         }
 
-        // Global Event Listeners
-        terminalTrigger.onclick = (e) => { e.stopPropagation(); toggleTerminal(); };
+        document.getElementById('terminal-trigger').onclick = (e) => { e.stopPropagation(); toggleTerminal(); };
         window.addEventListener('keydown', (e) => { if (e.key === '~' || e.key === '`') { e.preventDefault(); toggleTerminal(); } });
         
         mainAudio.ontimeupdate = () => {
@@ -661,15 +671,30 @@
 
         window.onload = () => {
             fetchUserLocation();
-            syncArchiveData();
+            initializeData();
             runPostSequence();
-            updateVUMeter();
+            
+            // Increased prompt frequency (increased chance or shorter interval)
+            setInterval(() => {
+                if (Math.random() > 0.70) { // Increased from 0.85
+                    const event = spookyLines[Math.floor(Math.random() * spookyLines.length)];
+                    event();
+                }
+            }, 10000); // Shortened from 15000
+
+            // Uptime and CPU simulation
             setInterval(() => {
                 const elapsed = Math.floor((Date.now() - siteBootTime) / 1000);
                 document.getElementById('uptime').innerText = `UP: ${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
-                document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 15 + 5).toString().padStart(2, '0')}%`;
+                document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 8 + 2).toString().padStart(2, '0')}%`;
             }, 1000);
         };
+
+        function toggleTerminal() {
+            const isVisible = consoleContainer.style.display === 'flex';
+            consoleContainer.style.display = isVisible ? 'none' : 'flex';
+            if (!isVisible) setTimeout(() => consoleInput.focus(), 10);
+        }
     </script>
 </body>
 </html>
