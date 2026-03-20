@@ -1,0 +1,38 @@
+{
+"begotten.log": {
+"type": "text",
+"content": "LOG_ENTRY_001: The static is getting louder. We found the archive under the floorboards."
+},
+"begotten_1989.log": {
+"type": "external",
+"url": "https://youtu.be/vvwGtlzTKYQ?si=TgJbAZ8xg-pnXRG8&t=75"
+},
+"bohemian_grove.log": {
+"type": "external",
+"url": "https://youtu.be/_lQGAltQ5Jg?si=5HC7g07gLzcvIDAK&t=4470"
+},
+"come_with.log": {
+"type": "video",
+"url": "log clips/come%20with.mp4"
+},
+"who_is_he.log": {
+"type": "video",
+"url": "log clips/who%20is%20he.mp4"
+},
+"peptides.log": {
+"type": "external",
+"url": "https://www.youtube.com/live/-ncjnYkkCmo?si=j298dVo9jOXjmZrS&t=6280"
+},
+"gravedigger_mountain.log": {
+"type": "video",
+"url": "log clips/gravedigger%20mountain.mp4"
+},
+"woody_allen.log": {
+"type": "video",
+"url": "log clips/Woody%20Allen.mp4"
+},
+"lost_signal.wav": {
+"type": "audio",
+"url": "audio/mystery.wav"
+}
+}
