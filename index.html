@@ -133,7 +133,7 @@
         .audio-btn { background: none; border: none; color: #444; cursor: pointer; padding: 0; transition: color 0.2s; }
         .audio-btn:hover { color: var(--terminal-off-white); }
 
-        /* Terminal Cursor Styling - Added cursor pointer and active scale for tactile feel */
+        /* Terminal Cursor Styling */
         .terminal-cursor {
             display: inline-block;
             width: 8px;
@@ -145,7 +145,6 @@
             position: relative;
         }
         
-        /* Larger hit area for mobile tap */
         .terminal-cursor::after {
             content: '';
             position: absolute;
@@ -161,7 +160,7 @@
             50% { opacity: 0; }
         }
 
-        /* Hidden Terminal Console - Made Taller */
+        /* Hidden Terminal Console */
         #console-container {
             position: fixed;
             bottom: 0;
@@ -175,7 +174,7 @@
             flex-direction: column;
             font-size: 12px;
             color: var(--terminal-off-white);
-            max-height: 50vh; /* Taller */
+            max-height: 50vh;
         }
         
         #console-container.lockdown {
@@ -193,7 +192,7 @@
             margin-bottom: 5px;
             font-size: 10px;
             color: #666;
-            max-height: 250px; /* Increased scroll area */
+            max-height: 250px;
         }
         .console-input-row {
             display: flex;
@@ -284,7 +283,6 @@
     <div id="boot-screen"></div>
     <div class="scanline" id="scanline"></div>
 
-    <!-- Windowed Video Overlay -->
     <div id="video-overlay">
         <div class="video-window">
             <div class="video-window-header">
@@ -326,7 +324,7 @@
             <span class="widget-title">AUDIO</span>
             <span id="current-time" class="text-white opacity-60">0:00</span> 
         </div>
-        <div class="mb-1 truncate text-white opacity-80" id="track-name">READY_TO_BOOT</div>
+        <div class="mb-1 truncate text-white opacity-80" id="track-name">SYNCING_REPOSITORY...</div>
         <div class="progress-container" id="progress-area">
             <div class="progress-bar" id="progress-bar"></div>
         </div>
@@ -358,27 +356,27 @@
         <section class="space-y-8 md:space-y-12">
             <div class="group typewriter-line" data-delay="1600">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">01 / Utilities</span>
-                <a href="utilities.html" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg glitch-target">Web Tools</a>
+                <a href="#" class="link-item w-full block py-2 text-lg glitch-target">Web Tools</a>
             </div>
 
             <div class="group typewriter-line" data-delay="2400">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">02 / Visuals</span>
-                <a href="galleries.html" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg glitch-target">Gallery</a>
+                <a href="#" class="link-item w-full block py-2 text-lg glitch-target">Gallery</a>
             </div>
 
             <div class="group typewriter-line" data-delay="3200">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">03 / Documentation</span>
-                <a href="#" target="_blank" rel="noopener noreferrer" class="link-item w-full block py-2 text-lg glitch-target">Writings</a>
+                <a href="#" class="link-item w-full block py-2 text-lg glitch-target">Writings</a>
             </div>
 
             <div class="group typewriter-line" data-delay="4000">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">04 / Network</span>
                 <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm glitch-target">CSFloat</a>
-                    <a href="https://www.inaturalist.org/observations?user_id=jiwt&verifiable=any" target="_blank" class="link-item py-2 text-sm glitch-target">iNaturalist</a>
-                    <a href="https://letterboxd.com/Jiwt" target="_blank" class="link-item py-2 text-sm glitch-target">Letterboxd</a>
-                    <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm glitch-target">LighterPack</a>
-                    <a href="https://www.twitch.tv/jiwt" target="_blank" class="link-item py-2 text-sm glitch-target">Twitch</a>
+                    <a href="#" class="link-item py-2 text-sm glitch-target">CSFloat</a>
+                    <a href="#" class="link-item py-2 text-sm glitch-target">iNaturalist</a>
+                    <a href="#" class="link-item py-2 text-sm glitch-target">Letterboxd</a>
+                    <a href="#" class="link-item py-2 text-sm glitch-target">LighterPack</a>
+                    <a href="#" class="link-item py-2 text-sm glitch-target">Twitch</a>
                 </div>
             </div>
         </section>
@@ -390,79 +388,28 @@
     </main>
 
     <script>
-        // Global for storing IP/Location data
-        let userData = { ip: 'SCANNING...', city: 'REDACTED', region: 'REDACTED', isp: 'REDACTED' };
+        // CONFIGURATION: Set these to your GitHub repo paths
+        const REPO_BASE = "./data/"; // Use relative paths for local dev, or full raw.githubusercontent URLs
+        const TRACKS_JSON_URL = REPO_BASE + "tracks.json";
+        const FILES_JSON_URL = REPO_BASE + "terminal_files.json";
 
+        let userData = { ip: 'SCANNING...', city: 'REDACTED', region: 'REDACTED', isp: 'REDACTED' };
+        let audioTracks = [];
+        let virtualFiles = {};
+        
         const bootData = [
             "Initializing BIOS...", "Verifying CPU...", "Memory Test: 16384MB OK",
             "SATA Primary Master: 500GB SSD", "USB Controller Initialized...",
             "Network Card Found [MAC: 00:1A:2B:3C:4D:5E]", "DHCP Handshake... OK",
             "Loading Kernel ARCH_OS_01...", "Mounting /dev/sda1...",
             "Encryption Layer: AES-256 Enabled", "Checking Archive Integrity...",
+            "Establishing GitHub Uplink...", "Fetching Tracks JSON...", "Fetching Terminal Assets...",
             "Checksum 0xAF43... PASSED", "Loading UI Assets...",
             "Starting Media Engine...", "Redirecting I/O...",
             "SUCCESS: System Boot Sequence Complete."
         ];
 
-        const audioTracks = [
-            { name: "MARIO LEMIEUXX", url: "audio/01 Mario Lemieuxx.mp3" },
-            { name: "A PARTRIDGE & A PEAR TREE", url: "audio/02. A Partridge & A Pear Tree (Feat. Tha God Fahim) (Prod. By Sage Elsesser).mp3" },
-            { name: "FROMAJ", url: "audio/02 Fromaj feat. JuJu Gotti.mp3" },
-            { name: "JFMAMJJASOND", url: "audio/03 JFMAMJJASOND.mp3" },
-            { name: "LOCATION STATE OF MIND", url: "audio/04. Location State Of Mind.mp3" },
-            { name: "ALLEN IVERSON", url: "audio/04. Allen Iverson (Feat. Heem Stogied) (Prod. By Earl Sweatshirt).mp3" },
-            { name: "WINGARIUM LEVIOSA (ADVANCED LISTENING)", url: "audio/06 Wingarium Leviosa (Advanced Listening).mp3" },
-            { name: "DNA SWAB", url: "audio/06. DNA Swab (Feat. Tha God Fahim) (Prod. By Earl Sweatshirt).mp3" },
-            { name: "LONG TIME", url: "audio/10. Long Time (Prod. By Alchemist).mp3" },
-            { name: "AIRWORKS", url: "audio/12 Airworks.mp3" },
-            { name: "DON'T CRY", url: "audio/18 Don't Cry.mp3" },
-            { name: "GOBSTOPPER", url: "audio/22 Gobstopper.mp3" },
-            { name: "BYE..", url: "audio/29 Bye..mp3" },
-            { name: "LAST DONUT OF THE NIGHT", url: "audio/30 Last Donut of the Night.mp3" },
-            { name: "DONUTS (INTRO)", url: "audio/31 Donuts (Intro).mp3" },
-            { name: "I PROMISE YA", url: "audio/I Promise Ya.mp3" },
-            { name: "SPRAY 4 ME", url: "audio/Gucci Mane - Spray 4 ME (Prod By DPBEATS).mp3" },
-            { name: "IT JUST DOESNT MATTER", url: "audio/07 - It Just Doesnt Matter.mp3" },
-            { name: "INSIDE OUTSIDE", url: "audio/01 - Inside Outside.wav.mp3" },
-            { name: "SWITCHIN LANES", url: "audio/switchin lanes.mp3" },
-            { name: "12 BARS", url: "audio/01 - 12 Bars (DatPiff Exclusive).mp3" },
-            { name: "MORGAN TRACY", url: "audio/03 - Morgan Tracy (DatPiff Exclusive).mp3" },
-            { name: "FUCK ME", url: "audio/06 - Fuck Me (DatPiff Exclusive).mp3" },
-            { name: "IN CASE YOU FORGOT", url: "audio/Roc Marciano - In Case You Forgot.mp3" },
-            { name: "RUN-INS", url: "audio/04 - Run-Ins.mp3" },
-            { name: "WILLIE LLOYD (INST)", url: "audio/07 Willie Lloyd (Instrumental).mp3" },
-            { name: "NO WINDOW TINTS (INST)", url: "audio/06 No Window Tints (Instrumental).mp3" },
-            { name: "GAMEBREAKER", url: "audio/Domo Genesis - Gamebreaker ft. Earl Sweatshirt.mp3" },
-            { name: "RANDY THE MUSICAL", url: "audio/Action Bronson - Randy The Musical.mp3" },
-            { name: "DA COLDEST", url: "audio/01 Da Coldest-HHB.mp3" },
-            { name: "HOOVER STREET (OG VERSION)", url: "audio/Schoolboy Q - Hoover Street (Original Version).mp3" },
-            { name: "MASSACURES", url: "audio/06. Massacures.mp3" },
-            { name: "KNIFE CONFRONTATION", url: "audio/13 - Knife Confrontation.mp3" },
-            { name: "$111.11", url: "audio/02. $111.11 feat. Mach-Hommy [Prod. Camoflauge Monk].mp3" },
-            { name: "NO MORE TIME", url: "audio/09 No More Time_ (The Change).m4a" },
-            { name: "DO YOU KNOW", url: "audio/10 Do You Know_ (Transition).m4a" },
-            { name: "JULANI", url: "audio/02 Julani.mp3" },
-            { name: "HAPPYNESS (SKIT)", url: "audio/04. Happyness (Skit).mp3" },
-            { name: "FUBAR", url: "audio/08. fubar.mp3" },
-            { name: "NIGGAS SOOOOO GOOD", url: "audio/05. Niggas Sooooo Good.mp3" },
-            { name: "SHERWIN WILLIAMS", url: "audio/Mach-Hommy - DUMPMEISTER - 05 Sherwin Williams feat. Koncept Jack$on (beats by NAVY BLUE).mp3" },
-            { name: "FREESTYLE IN FERRAGAMO", url: "audio/05 - Freestyle in Ferragamo feat. Chase Deniro [Prod. CamoflaugeMonk].mp3" },
-            { name: "OIL BASE", url: "audio/11 - Oil Base [Prod. CamoflaugeMonk].mp3" },
-            { name: "OD", url: "audio/4 - OD.mp3" },
-            { name: "THE MAN", url: "audio/15 - The Man.mp3" },
-            { name: "LONG LIVE JULIO", url: "audio/06 - Long Live Julio.flac" },
-            { name: "NIAGARA CAFE", url: "audio/04. Niagara Cafe.mp3" },
-            { name: "BUBBA CHUCK", url: "audio/10. Bubba Chuck feat. Stove God Cooks.mp3" },
-            { name: "PETE SAKE", url: "audio/8 - Pete Sake.mp3" },
-            { name: "FERRAGAMO FUNERAL", url: "audio/5 - Ferragamo Funeral.mp3" },
-            { name: "LUNCHIN", url: "audio/4 - Lunchin.mp3" },
-            { name: "OSCAR DE LA RENTA", url: "audio/02. Oscar De La Renta.mp3" },
-            { name: "BURT & STATE", url: "audio/7 - Burt & State.mp3" },
-            { name: "SURVIVAL TACTICS", url: "audio/04. Survival Tactics feat. Capital STEEZ [Prod. Vin Skully].mp3" },
-            { name: "YRN", url: "audio/14. YRN.mp3" },
-            { name: "PRONTO", url: "audio/11. Pronto.mp3" }
-        ];
-
+        // UI Element References
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
         const skipBtn = document.getElementById('skip-btn');
@@ -470,8 +417,6 @@
         const progressBar = document.getElementById('progress-bar');
         const progressArea = document.getElementById('progress-area');
         const currentTimeDisplay = document.getElementById('current-time');
-        const muteBtn = document.getElementById('mute-btn');
-        const audioStatusText = document.getElementById('audio-status-text');
         const diagLogs = document.getElementById('diag-logs');
         const vuContainer = document.getElementById('vu-meter');
         const videoOverlay = document.getElementById('video-overlay');
@@ -479,12 +424,38 @@
         const videoTitle = document.getElementById('video-title');
         const videoCloseBtn = document.getElementById('video-close-btn');
         const terminalTrigger = document.getElementById('terminal-trigger');
+        const consoleContainer = document.getElementById('console-container');
+        const consoleInput = document.getElementById('console-input');
+        const consoleOutput = document.getElementById('console-output');
 
-        let currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
+        let currentTrackIndex = 0;
         let siteBootTime = Date.now();
-        
-        let audioCtx, analyser, source, dataArray;
-        let isAudioContextInitialized = false;
+        let isLockdown = false;
+        let audioCtx, analyser, source, dataArray, isAudioContextInitialized = false;
+
+        // --- DATA SYNC LOGIC ---
+        async function syncArchiveData() {
+            try {
+                const [tracksRes, filesRes] = await Promise.all([
+                    fetch(TRACKS_JSON_URL).catch(e => ({ json: () => [] })),
+                    fetch(FILES_JSON_URL).catch(e => ({ json: () => ({}) }))
+                ]);
+                
+                audioTracks = await tracksRes.json();
+                virtualFiles = await filesRes.json();
+
+                if (audioTracks.length > 0) {
+                    currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
+                    loadTrack(currentTrackIndex);
+                } else {
+                    trackName.innerText = "NO_TRACKS_FOUND";
+                }
+                addDiagLine("DATA_SYNC_SUCCESS");
+            } catch (e) {
+                console.error("Sync Failed:", e);
+                addDiagLine("SYNC_ERROR: REVERTING_LOCAL", "var(--crimson)");
+            }
+        }
 
         async function fetchUserLocation() {
             try {
@@ -496,11 +467,10 @@
                     region: data.region || 'REDACTED',
                     isp: data.org || 'REDACTED'
                 };
-            } catch (e) {
-                console.warn("Location fetch blocked or failed.");
-            }
+            } catch (e) { console.warn("Location fetch blocked."); }
         }
 
+        // --- AUDIO ENGINE ---
         function initAudioContext() {
             if (isAudioContextInitialized) return;
             try {
@@ -510,112 +480,58 @@
                 source.connect(analyser);
                 analyser.connect(audioCtx.destination);
                 analyser.fftSize = 128; 
-                analyser.smoothingTimeConstant = 0.82;
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
                 isAudioContextInitialized = true;
-            } catch(e) { console.warn("Audio Context failed."); }
+            } catch(e) { console.warn("Audio Context error."); }
         }
 
-        const numBars = 16;
-        const bars = [];
-        for (let i = 0; i < numBars; i++) {
-            const bar = document.createElement('div');
-            bar.className = 'vu-bar';
-            vuContainer.appendChild(bar);
-            bars.push(bar);
-        }
+        const bars = Array.from({length: 16}, () => {
+            const b = document.createElement('div');
+            b.className = 'vu-bar';
+            vuContainer.appendChild(b);
+            return b;
+        });
 
         function updateVUMeter() {
             if (isAudioContextInitialized && !mainAudio.paused) {
                 analyser.getByteFrequencyData(dataArray);
-                for (let i = 0; i < numBars; i++) {
-                    const bar = bars[i];
-                    const val = dataArray[i * 2] || 0; 
-                    const h = Math.max(2, (val / 255) * 18);
-                    bar.style.height = h + 'px';
-                    if (val > 40) bar.classList.add('active'); else bar.classList.remove('active');
-                    if (val > 230) bar.classList.add('peak'); else bar.classList.remove('peak');
-                }
+                bars.forEach((bar, i) => {
+                    const val = dataArray[i * 2] || 0;
+                    bar.style.height = Math.max(2, (val/255)*18) + 'px';
+                    val > 40 ? bar.classList.add('active') : bar.classList.remove('active');
+                    val > 230 ? bar.classList.add('peak') : bar.classList.remove('peak');
+                });
             } else {
-                bars.forEach(bar => { bar.style.height = '2px'; bar.classList.remove('active', 'peak'); });
+                bars.forEach(b => { b.style.height='2px'; b.classList.remove('active', 'peak'); });
             }
             requestAnimationFrame(updateVUMeter);
         }
-        updateVUMeter();
 
-        const glitchChars = "ｦｧｨｩｪｫｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ23457890ZXV<>+?@#$%&";
-        function glitchElement(el) {
-            const originalText = el.innerText;
-            el.classList.add('glitch-active');
-            let frame = 0;
-            const maxFrames = 15;
-            const interval = setInterval(() => {
-                el.innerText = originalText.split("").map(char => Math.random() > 0.4 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : char).join("");
-                if (++frame >= maxFrames) { clearInterval(interval); el.innerText = originalText; el.classList.remove('glitch-active'); }
-            }, 60);
+        function loadTrack(index) {
+            const track = audioTracks[index];
+            if (!track) return;
+            mainAudio.src = track.url;
+            trackName.innerText = track.name.toUpperCase();
+            addDiagLine(`LOADING: ${track.name.toUpperCase()}`);
         }
 
-        function triggerRandomGlitch() {
-            if (isLockdown) return;
-            const targets = document.querySelectorAll('.glitch-target');
-            if (targets.length > 0) glitchElement(targets[Math.floor(Math.random() * targets.length)]);
-            setTimeout(triggerRandomGlitch, 7000 + Math.random() * 3000);
-        }
-        setTimeout(triggerRandomGlitch, 6000);
-
-        const consoleContainer = document.getElementById('console-container');
-        const consoleInput = document.getElementById('console-input');
-        const consoleOutput = document.getElementById('console-output');
-
-        const virtualFiles = {
-            'begotten_1989.log': { type: 'external', source: "https://youtu.be/vvwGtlzTKYQ?si=TgJbAZ8xg-pnXRG8&t=75" },
-            'bohemian_grove.log': { type: 'external', source: "https://youtu.be/_lQGAltQ5Jg?si=5HC7g07gLzcvIDAK&t=4470" },
-            'come_with.log': { type: 'internal', source: "log clips/come%20with.mp4" },
-            'who_is_he.log': { type: 'internal', source: "log clips/who%20is%20he.mp4" },
-            'peptides.log': { type: 'external', source: "https://www.youtube.com/live/-ncjnYkkCmo?si=j298dVo9jOXjmZrS&t=6280" },
-            'gravedigger_mountain.log': { type: 'internal', source: "log clips/gravedigger%20mountain.mp4" },
-            'woody_allen.log': { type: 'internal', source: "log clips/Woody%20Allen.mp4" },
-            'secret_projects.dir': { type: 'text', source: "[HIDDEN_FOLDER] - MK_ULTRA_SUBJECTS, SOCIAL_EXPERIMENT, SHOOTERS_SALOON.zip, LYME_DISEASE_BIOWEAPON" }
+        playBtn.onclick = async () => { 
+            initAudioContext();
+            if (audioCtx?.state === 'suspended') await audioCtx.resume();
+            if (mainAudio.paused) {
+                mainAudio.play(); playBtn.innerText = "PAUSE";
+            } else {
+                mainAudio.pause(); playBtn.innerText = "PLAY";
+            }
+        };
+        skipBtn.onclick = () => {
+            currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
+            loadTrack(currentTrackIndex);
+            mainAudio.play();
+            playBtn.innerText = "PAUSE";
         };
 
-        const honeypotItems = ["MK_ULTRA_SUBJECTS", "SOCIAL_EXPERIMENT", "SHOOTERS_SALOON.zip", "LYME_DISEASE_BIOWEAPON"];
-        let isLockdown = false;
-
-        function openInternalVideo(url, title = "ARCHIVE_LOG_FEED", canClose = true) {
-            if (!mainAudio.paused) {
-                mainAudio.pause();
-                playBtn.innerText = "PLAY";
-            }
-            
-            videoTitle.innerText = `STATUS: ${title.toUpperCase()}`;
-            videoPlayer.src = url;
-            videoOverlay.style.display = 'flex';
-            
-            if (!canClose) {
-                videoCloseBtn.classList.add('hidden');
-                // Force automatic closure on end if the user can't close it manually
-                videoPlayer.onended = () => {
-                    videoCloseBtn.classList.remove('hidden'); // Unlock logical state
-                    closeVideoPlayer();
-                };
-            } else {
-                videoCloseBtn.classList.remove('hidden');
-                videoPlayer.onended = () => {
-                    closeVideoPlayer();
-                };
-            }
-
-            videoPlayer.play();
-        }
-
-        function closeVideoPlayer() {
-            // Check if close is even allowed currently (prevent manual close during unclosable feeds)
-            if (videoCloseBtn.classList.contains('hidden')) return;
-            videoPlayer.pause();
-            videoOverlay.style.display = 'none';
-            videoPlayer.src = "";
-        }
-
+        // --- TERMINAL ENGINE ---
         function writeToConsole(text, color = "#666") {
             const line = document.createElement('div');
             line.style.color = color;
@@ -627,42 +543,12 @@
             return line;
         }
 
-        function triggerLockdown() {
-            if (isLockdown) return;
-            isLockdown = true;
-            consoleContainer.classList.add('lockdown');
-            document.getElementById('input-row').style.visibility = 'hidden';
-            const messages = ["!!! SECURITY BREACH DETECTED !!!", "UNAUTHORIZED ACCESS TO CLASSIFIED ASSETS", `TRACING_NODE: ${userData.city.toUpperCase()}_${userData.ip}`, "DISPATCHING AGENTS IMMEDIATELY."];
-            let i = 0;
-            const msgInterval = setInterval(() => {
-                if (i < messages.length) { writeToConsole(messages[i], "#ff0000"); i++; }
-                else clearInterval(msgInterval);
-            }, 1000);
-        }
-
-        // Toggle terminal function shared by Key and Click
         function toggleTerminal() {
             if (isLockdown) return;
             const isVisible = consoleContainer.style.display === 'flex';
             consoleContainer.style.display = isVisible ? 'none' : 'flex';
-            if (!isVisible) {
-                // Short delay to ensure it's visible before focusing
-                setTimeout(() => consoleInput.focus(), 10);
-            }
+            if (!isVisible) setTimeout(() => consoleInput.focus(), 10);
         }
-
-        // Click trigger on the blinking red box
-        terminalTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleTerminal();
-        });
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === '~' || e.key === '`') {
-                e.preventDefault();
-                toggleTerminal();
-            }
-        });
 
         consoleInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -673,103 +559,65 @@
                 consoleInput.value = '';
                 writeToConsole(`> ${rawInput.toUpperCase()}`, "#aaa");
 
-                if (rawInput.toUpperCase() === 'TIMEWARP') {
-                    writeToConsole("ACTIVATING TIME_WARP", "var(--crimson)");
-                    setTimeout(() => {
-                        writeToConsole("SKIPPING_TIME, 1 YEAR", "var(--crimson)");
-                        setTimeout(() => {
-                            // Unclosable video player - will auto-close on finish via openInternalVideo logic
-                            openInternalVideo("log clips/oneyear.mp4", "ARCHIVING_TIME", false);
-                        }, 1000);
-                    }, 800);
-                    return;
-                }
-
                 if(cmd === 'help') {
-                    writeToConsole("AVAILABLE COMMANDS: LIST, OPEN [FILE], WHOAMI, TIMEWARP");
+                    writeToConsole("COMMANDS: LIST, OPEN [FILENAME], WHOAMI, SYNC");
                 }
                 else if(cmd === 'list') {
-                    Object.keys(virtualFiles).forEach(f => writeToConsole(` - ${f}`, "#888"));
+                    const keys = Object.keys(virtualFiles);
+                    if (keys.length === 0) writeToConsole("FILE_SYSTEM_EMPTY. RUN 'SYNC'");
+                    else keys.forEach(f => writeToConsole(` - ${f}`, "#888"));
+                }
+                else if(cmd === 'sync') {
+                    writeToConsole("RE-ESTABLISHING REPOSITORY CONNECTION...", "var(--crimson)");
+                    syncArchiveData().then(() => writeToConsole("SYNC_COMPLETE.", "green"));
                 }
                 else if(cmd === 'open') {
-                    if (!arg) {
-                        writeToConsole("ERR: NO FILE SPECIFIED.");
-                        return;
-                    }
                     const file = virtualFiles[arg];
-                    if (honeypotItems.some(item => arg.toUpperCase().includes(item.toUpperCase()))) {
-                        triggerLockdown();
-                    } else if (file) {
-                        if (file.type === 'external') {
-                            writeToConsole(`UPLINKING TO EXTERNAL SOURCE...`, "var(--crimson)");
-                            window.open(file.source, "_blank");
-                        } else if (file.type === 'internal') {
-                            writeToConsole(`DECRYPTING MEDIA FEED: ${arg.toUpperCase()}`, "var(--crimson)");
-                            setTimeout(() => openInternalVideo(file.source, arg), 500);
+                    if (file) {
+                        if (file.type === 'video') {
+                            openInternalVideo(file.url, arg);
+                            writeToConsole(`STREAMING: ${arg.toUpperCase()}`, "var(--crimson)");
+                        } else if (file.type === 'audio') {
+                            mainAudio.src = file.url;
+                            trackName.innerText = arg.toUpperCase();
+                            mainAudio.play();
+                            writeToConsole(`PLAYING_EXTERNAL_SOURCE: ${arg.toUpperCase()}`, "var(--crimson)");
                         } else {
-                            writeToConsole(`\n--- ${arg.toUpperCase()} ---\n${file.source}\n`, "var(--crimson)");
+                            writeToConsole(`\n--- ${arg.toUpperCase()} ---\n${file.content}\n`, "var(--crimson)");
                         }
                     } else {
-                        writeToConsole(`ERR: FILE '${arg}' NOT FOUND.`);
+                        writeToConsole(`ERR: '${arg}' NOT FOUND.`);
                     }
                 }
                 else if(cmd === 'whoami') {
                     writeToConsole(`REMOTE_IP: ${userData.ip}`);
-                    writeToConsole(`LOCATION: ${userData.city.toUpperCase()}, ${userData.region.toUpperCase()}`);
-                    writeToConsole(`UPLINK: ${userData.isp.toUpperCase()}`);
-                    
-                    const identityLine = writeToConsole("IDENTITY: UNKNOWN_GUEST_01");
-                    const baseText = "IDENTITY: ";
-                    const target = "UNKNOWN_GUEST_01";
-                    setInterval(() => {
-                        if (consoleContainer.style.display === 'flex') {
-                            identityLine.innerText = baseText + target.split("").map(char => 
-                                Math.random() > 0.8 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : char
-                            ).join("");
-                        }
-                    }, 80);
-
-                    writeToConsole("STATUS: BEING_WATCHED", "var(--crimson)");
+                    writeToConsole(`LOCATION: ${userData.city.toUpperCase()}`);
                 }
-                else writeToConsole("ERR: CMD NOT FOUND.");
+                else writeToConsole("ERR: UNKNOWN_CMD.");
             }
         });
 
-        const diagPool = [
-            "KERNEL_SYNC_OK", 
-            "PACKET_DUMP_COMPLETE", 
-            "PROXY_ROTATED", 
-            "ENCRYPTION_LAYER_STABLE",
-            "YOURSCREEN_IS_DIRTY"
-        ];
-        
+        // --- BOOT & UTILITIES ---
+        function openInternalVideo(url, title = "ARCHIVE_FEED") {
+            mainAudio.pause();
+            playBtn.innerText = "PLAY";
+            videoTitle.innerText = `STATUS: ${title.toUpperCase()}`;
+            videoPlayer.src = url;
+            videoOverlay.style.display = 'flex';
+            videoPlayer.play();
+        }
+
+        function closeVideoPlayer() {
+            videoPlayer.pause();
+            videoOverlay.style.display = 'none';
+        }
+
         function addDiagLine(text, color = null) {
             const log = document.createElement('div');
             log.innerText = `> ${text}`;
             if (color) log.style.color = color;
             diagLogs.prepend(log);
-            if (diagLogs.children.length > 8) diagLogs.removeChild(diagLogs.lastChild);
-        }
-
-        function runRandomDiag() {
-            if (isLockdown) return;
-            
-            if (Math.random() > 0.8) {
-                addDiagLine("HEARTBEAT DETECTED IN DIRECTORY");
-                setTimeout(() => addDiagLine("UNKNOWN_USER DETECTED", "var(--crimson)"), 800);
-            } else {
-                const msg = diagPool[Math.floor(Math.random() * diagPool.length)];
-                addDiagLine(msg);
-            }
-            
-            setTimeout(runRandomDiag, 2000 + Math.random() * 4000);
-        }
-
-        function initDiagSequence() {
-            setTimeout(() => addDiagLine("FACECAM_ON", "var(--crimson)"), 500);
-            setTimeout(() => addDiagLine("EYE_TRACKING_ACTIVE", "var(--crimson)"), 1500);
-            setTimeout(() => addDiagLine("PING_LOCATION..."), 3500);
-            setTimeout(runRandomDiag, 6000);
+            if (diagLogs.children.length > 10) diagLogs.removeChild(diagLogs.lastChild);
         }
 
         function runPostSequence() {
@@ -781,7 +629,6 @@
                     line.className = 'post-line';
                     line.innerText = `[ OK ] ${bootData[count++]}`;
                     screen.appendChild(line);
-                    screen.scrollTop = screen.scrollHeight;
                 } else {
                     clearInterval(interval);
                     setTimeout(() => {
@@ -794,43 +641,16 @@
                             });
                             document.getElementById('diag-widget').style.opacity = '1';
                             document.getElementById('audio-widget').style.opacity = '1';
-                            initDiagSequence();
                         }, 400);
                     }, 300);
                 }
-            }, 50);
+            }, 40);
         }
 
-        function loadTrack(index) {
-            const track = audioTracks[index];
-            mainAudio.src = track.url;
-            trackName.innerText = track.name.toUpperCase();
-            mainAudio.load();
-        }
-
-        async function playAudio() {
-            initAudioContext();
-            if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
-            try {
-                await mainAudio.play();
-                playBtn.innerText = "PAUSE";
-                audioStatusText.innerText = "Streaming";
-            } catch (e) { console.warn("Playback prevented."); }
-        }
-
-        playBtn.onclick = () => { if (mainAudio.paused) playAudio(); else { mainAudio.pause(); playBtn.innerText = "PLAY"; audioStatusText.innerText = "Paused"; } };
-        skipBtn.onclick = () => { currentTrackIndex = Math.floor(Math.random() * audioTracks.length); loadTrack(currentTrackIndex); playAudio(); };
-        muteBtn.onclick = () => { mainAudio.muted = !mainAudio.muted; muteBtn.innerText = mainAudio.muted ? "UNMUTE" : "MUTE"; };
-
-        function seek(e) {
-            if (!mainAudio.duration) return;
-            const rect = progressArea.getBoundingClientRect();
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            mainAudio.currentTime = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) * mainAudio.duration;
-        }
-        progressArea.addEventListener('mousedown', seek);
-        progressArea.addEventListener('touchstart', (e) => { e.preventDefault(); seek(e); });
-
+        // Global Event Listeners
+        terminalTrigger.onclick = (e) => { e.stopPropagation(); toggleTerminal(); };
+        window.addEventListener('keydown', (e) => { if (e.key === '~' || e.key === '`') { e.preventDefault(); toggleTerminal(); } });
+        
         mainAudio.ontimeupdate = () => {
             if (!mainAudio.duration) return;
             progressBar.style.width = `${(mainAudio.currentTime / mainAudio.duration) * 100}%`;
@@ -841,8 +661,9 @@
 
         window.onload = () => {
             fetchUserLocation();
+            syncArchiveData();
             runPostSequence();
-            loadTrack(currentTrackIndex);
+            updateVUMeter();
             setInterval(() => {
                 const elapsed = Math.floor((Date.now() - siteBootTime) / 1000);
                 document.getElementById('uptime').innerText = `UP: ${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
