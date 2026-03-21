@@ -532,9 +532,11 @@
                     writeToConsole(`STATUS: BEING_WATCHED`, "var(--crimson)");
                 }
                 else if (cmd === 'timewarp') {
-                    writeToConsole("ACTIVATE_TIMEWARP", "var(--crimson)");
+                    writeToConsole("ACTIVATING_TIMEWARP", "var(--crimson)");
                     writeToConsole("SKIPPING 1 YEAR...", "var(--crimson)");
-                    openVideo("log clips/oneyear.mp4", "TIMEWARP", true);
+                    setTimeout(() => {
+                        openVideo("log clips/oneyear.mp4", "TIMEWARP", true);
+                    }, 3000);
                 }
                 else if (cmd === 'open' && virtualFiles[arg]) {
                     writeToConsole(`ACCESSING: ${arg.toUpperCase()}`, "var(--crimson)");
@@ -589,6 +591,16 @@
             loadTrack((currentTrackIndex + 1) % audioTracks.length);
             mainAudio.play();
             playBtn.innerText = "PAUSE";
+        };
+
+        // Seek Bar Functionality
+        progressArea.onclick = (e) => {
+            if (!mainAudio.duration) return;
+            const rect = progressArea.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const width = rect.width;
+            const percentage = x / width;
+            mainAudio.currentTime = percentage * mainAudio.duration;
         };
 
         // --- Video Player ---
