@@ -24,15 +24,12 @@
             padding: 0;
         }
 
-        /* Scanline Effect using pseudo-element */
+        /* CRT Overlay Effect */
         body::before {
             content: " ";
             display: block;
             position: fixed;
-            top: 0; 
-            left: 0; 
-            bottom: 0; 
-            right: 0;
+            top: 0; left: 0; bottom: 0; right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             z-index: 9999;
@@ -40,29 +37,6 @@
             pointer-events: none;
         }
 
-        /* RGB Fuzz Hover Effect */
-        .glitch-text {
-            display: inline-block;
-            transition: color 0.2s;
-        }
-
-        .glitch-text:hover {
-            color: #ff3e3e;
-            text-shadow: 2px 0 #00ff41, -2px 0 blue; 
-        }
-
-        /* Red Border/Text Transition */
-        .red-hover {
-            transition: all 0.2s ease;
-        }
-
-        .red-hover:hover {
-            color: #ff3e3e !important;
-            border-color: #ff3e3e !important;
-            padding-left: 8px;
-        }
-
-        /* Boot Screen Sequence */
         #boot-screen {
             position: fixed;
             inset: 0;
@@ -74,33 +48,12 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transition: opacity 0.4s ease;
         }
 
-        .post-line {
-            line-height: 1.4;
-            white-space: nowrap;
-        }
+        .typewriter-line { overflow: hidden; white-space: nowrap; width: 0; opacity: 0; }
+        .typing { animation: typing-anim 0.8s steps(30, end) forwards; opacity: 1; }
+        @keyframes typing-anim { from { width: 0 } to { width: 100% } }
 
-        /* Animation Classes */
-        .typewriter-line {
-            overflow: hidden;
-            white-space: nowrap;
-            width: 0;
-            opacity: 0;
-        }
-
-        .typing {
-            animation: typing-anim 0.8s steps(30, end) forwards;
-            opacity: 1;
-        }
-
-        @keyframes typing-anim {
-            from { width: 0 }
-            to { width: 100% }
-        }
-
-        /* Sidebar Widgets */
         .widget-box {
             position: fixed;
             background: rgba(10, 10, 10, 0.9);
@@ -120,28 +73,16 @@
         }
 
         @media (max-width: 767px) {
-            .widget-box { 
-                width: 45%; 
-                font-size: 8px;
-                padding: 6px;
-                bottom: 1rem;
-            }
+            .widget-box { width: 45%; font-size: 8px; padding: 6px; bottom: 1rem; }
             .diag-box { left: 1rem; height: 110px; }
             .audio-box { right: 1rem; height: 130px; }
         }
 
-        .widget-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            border-bottom: 1px solid #1a1a1a;
-            padding-bottom: 0.25rem;
-        }
-
+        .widget-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px solid #1a1a1a; padding-bottom: 0.25rem; }
         .widget-title { color: var(--crimson); font-weight: bold; }
         
         .progress-container { width: 100%; height: 4px; background: #1a1a1a; margin: 8px 0; cursor: pointer; position: relative; }
-        .progress-bar { height: 100%; background: var(--crimson); width: 0%; transition: width 0.1s linear; pointer-events: none; }
+        .progress-bar { height: 100%; background: var(--crimson); width: 0%; pointer-events: none; }
         .audio-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
         .audio-btn { background: none; border: none; color: #444; cursor: pointer; padding: 0; transition: color 0.2s; }
         .audio-btn:hover { color: var(--terminal-off-white); }
@@ -156,20 +97,15 @@
             cursor: pointer;
         }
         
-        @keyframes blink {
-            from, to { opacity: 1; }
-            50% { opacity: 0; }
-        }
+        @keyframes blink { from, to { opacity: 1; } 50% { opacity: 0; } }
 
         #console-container {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+            bottom: 0; left: 0; width: 100%;
             background: #000;
             border-top: 1px solid var(--crimson);
             padding: 10px 20px;
-            z-index: 1000;
+            z-index: 10000;
             display: none;
             flex-direction: column;
             font-size: 12px;
@@ -177,91 +113,22 @@
             max-height: 50vh;
         }
 
-        #console-output {
-            overflow-y: auto;
-            margin-bottom: 5px;
-            font-size: 10px;
-            color: #666;
-            max-height: 250px;
-        }
-
+        #console-output { overflow-y: auto; margin-bottom: 5px; font-size: 10px; color: #666; max-height: 250px; }
         .console-input-row { display: flex; align-items: center; }
+        #console-input { background: transparent; border: none; outline: none; color: var(--terminal-off-white); flex-grow: 1; margin-left: 10px; font-family: 'Space Mono', monospace; }
+
+        .vu-meter-container { display: flex; gap: 2px; height: 20px; align-items: flex-end; margin-top: 10px; padding-top: 6px; border-top: 1px solid #111; }
+        .vu-bar { flex: 1; background: #1a1a1a; height: 2px; transition: height 0.08s ease-out; }
         
-        #console-input {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--terminal-off-white);
-            flex-grow: 1;
-            margin-left: 10px;
-            font-family: 'Space Mono', monospace;
-        }
-
-        #video-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-        }
-        .video-window {
-            width: 80%;
-            max-width: 900px;
-            background: #000;
-            border: 1px solid #333;
-            position: relative;
-            padding: 4px;
-        }
-
-        .vu-meter-container {
-            display: flex;
-            gap: 2px;
-            height: 20px;
-            align-items: flex-end;
-            margin-top: 10px;
-            padding-top: 6px;
-            border-top: 1px solid #111;
-        }
-        .vu-bar {
-            flex: 1;
-            background: #1a1a1a;
-            height: 2px;
-            transition: height 0.08s ease-out; 
-        }
-        .vu-bar.active { background: #555; }
-        .vu-bar.peak { background: var(--crimson); box-shadow: 0 0 4px var(--crimson); }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #991b1b;
-            border-radius: 9999px;
-            box-shadow: 0 0 8px #991b1b;
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
+        .status-dot { width: 8px; height: 8px; background-color: var(--crimson); border-radius: 9999px; box-shadow: 0 0 8px var(--crimson); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        .link-item { border-bottom: 1px solid #1a1a1a; display: inline-block; cursor: pointer; transition: all 0.2s; }
+        .link-item:hover { color: #ff3e3e; padding-left: 8px; border-bottom-color: var(--crimson); }
     </style>
 </head>
 <body class="p-8 md:p-24 pb-48 md:pb-24">
 
     <div id="boot-screen"></div>
-
-    <div id="video-overlay">
-        <div class="video-window">
-            <div class="flex justify-between items-center p-2 text-[10px] bg-zinc-900 border-b border-zinc-800 text-zinc-500">
-                <span id="video-title">STREAM: IDLE</span>
-                <span id="video-close-btn" class="cursor-pointer text-red-800 hover:text-red-500" onclick="closeVideoPlayer()">[X] CLOSE</span>
-            </div>
-            <video id="video-player" class="w-full"></video>
-        </div>
-    </div>
 
     <div id="console-container">
         <div id="console-output"></div>
@@ -312,60 +179,54 @@
         </header>
 
         <section class="space-y-8 md:space-y-12">
-            <div class="group typewriter-line" data-delay="1600">
+            <div class="group typewriter-line" data-delay="800">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-text">01 / Utilities</span>
-                <a href="#" class="red-hover border-b border-[#1a1a1a] w-full block py-2 text-lg">Web Tools</a>
+                <a href="utilities.html" class="link-item w-full block py-2 text-lg">Web Tools</a>
+            </div>
+
+            <div class="group typewriter-line" data-delay="1600">
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-text">02 / Visuals</span>
+                <a href="galleries.html" class="link-item w-full block py-2 text-lg">Gallery</a>
             </div>
 
             <div class="group typewriter-line" data-delay="2400">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-text">02 / Visuals</span>
-                <a href="#" class="red-hover border-b border-[#1a1a1a] w-full block py-2 text-lg">Gallery</a>
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-text">03 / Tools</span>
+                <a href="tool.html" class="link-item w-full block py-2 text-lg">System Tool</a>
             </div>
 
             <div class="group typewriter-line" data-delay="3200">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-text">03 / Documentation</span>
-                <a href="#" class="red-hover border-b border-[#1a1a1a] w-full block py-2 text-lg">Writings</a>
-            </div>
-
-            <div class="group typewriter-line" data-delay="4000">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-text">04 / Network</span>
                 <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <a href="https://csfloat.com" target="_blank" class="red-hover border-b border-[#1a1a1a] py-2 text-sm">CSFloat</a>
-                    <a href="https://www.inaturalist.org" target="_blank" class="red-hover border-b border-[#1a1a1a] py-2 text-sm">iNaturalist</a>
-                    <a href="https://letterboxd.com" target="_blank" class="red-hover border-b border-[#1a1a1a] py-2 text-sm">Letterboxd</a>
-                    <a href="https://lighterpack.com" target="_blank" class="red-hover border-b border-[#1a1a1a] py-2 text-sm">LighterPack</a>
-                    <a href="https://www.twitch.tv" target="_blank" class="red-hover border-b border-[#1a1a1a] py-2 text-sm">Twitch</a>
+                    <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm">CSFloat</a>
+                    <a href="https://www.inaturalist.org/observations?place_id=any&user_id=jiwt&verifiable=any" target="_blank" class="link-item py-2 text-sm">iNaturalist</a>
+                    <a href="https://letterboxd.com/Jiwt/" target="_blank" class="link-item py-2 text-sm">Letterboxd</a>
+                    <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm">LighterPack</a>
+                    <a href="https://www.twitch.tv/Jiwt" target="_blank" class="link-item py-2 text-sm">Twitch</a>
                 </div>
             </div>
         </section>
 
-        <footer class="mt-24 md:mt-32 pt-8 border-t border-[#111] typewriter-line" data-delay="4800">
+        <footer class="mt-24 md:mt-32 pt-8 border-t border-[#111] typewriter-line" data-delay="4000">
             <div class="terminal-cursor" id="terminal-trigger"></div>
-            <p class="text-[8px] mt-4 opacity-20">PRESS '~' FOR COMMAND INTERFACE</p>
+            <p class="text-[8px] mt-4 opacity-20 glitch-text">PRESS '~' FOR COMMAND INTERFACE</p>
         </footer>
     </main>
 
     <script>
-        /**
-         * CLEAN PATH LOGIC (EXCLUSIVELY FOR jiwt.online)
-         * - JSONs are in /data/
-         * - Audio files are in /audio/
-         */
         const TRACKS_JSON_URL = "data/tracks.json";
         const FILES_JSON_URL = "data/terminal_files.json";
-        const AUDIO_DIR = "audio/";
 
         let audioTracks = [];
         let virtualFiles = {};
-        
         let currentTrackIndex = 0;
         let siteBootTime = Date.now();
-        let audioCtx, analyser, source, dataArray, isAudioContextInitialized = false;
+        let warpOffset = 0; 
+        let audioCtx, analyser, source, dataArray, isAudioCtxInit = false;
 
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
         const skipBtn = document.getElementById('skip-btn');
-        const trackName = document.getElementById('track-name');
+        const trackNameDisplay = document.getElementById('track-name');
         const progressBar = document.getElementById('progress-bar');
         const progressArea = document.getElementById('progress-area');
         const currentTimeDisplay = document.getElementById('current-time');
@@ -374,169 +235,108 @@
         const consoleContainer = document.getElementById('console-container');
         const consoleInput = document.getElementById('console-input');
         const consoleOutput = document.getElementById('console-output');
-        const videoOverlay = document.getElementById('video-overlay');
-        const videoPlayer = document.getElementById('video-player');
-        const videoTitle = document.getElementById('video-title');
-        const videoCloseBtn = document.getElementById('video-close-btn');
 
         const bootData = [
             "ESTABLISHING_VIRTUAL_NETWORK_INTERFACE...",
-            "INITIALIZING_VIRTUAL_STACK...",
+            "SYNCING_LOCAL_FILESYSTEM...",
+            "PARSING_DATA_TRACKS...",
             "SUCCESS: ARCHIVE_OS_ONLINE"
         ];
 
-        const systemMessages = [
-            "PING_LATENCY: 14ms",
-            "SYN_FLOOD_DETECTED: BLOCKED",
-            "UPLINK_STABLE: 10Gbps",
-            "CACHE_PURGED: 12.4MB",
-            "HANDSHAKE_COMPLETE: NODE_04",
-            "MEMORY_CLEANUP_SUCCESSFUL",
-            "PORT_8080: LISTENING..."
-        ];
-
-        function runSystemLog() {
-            setInterval(() => {
-                const msg = systemMessages[Math.floor(Math.random() * systemMessages.length)];
-                addDiagLine(msg);
-            }, 3000);
-        }
-
-        const glitchChars = "!@#$%^&*()_+{}:<>?|[]-=/";
-        function glitchEffect(element, originalText) {
+        function applyGlitch() {
+            const targets = document.querySelectorAll('.glitch-text');
+            if (targets.length === 0) return;
+            const target = targets[Math.floor(Math.random() * targets.length)];
+            const originalText = target.innerText;
+            const glitchChars = "!@#$%^&*()_+";
             let iterations = 0;
             const interval = setInterval(() => {
-                element.innerText = originalText.split("").map((char, index) => {
-                    if (index < iterations) return originalText[index];
+                target.innerText = originalText.split('').map((char) => {
+                    if (char === ' ') return ' ';
                     return glitchChars[Math.floor(Math.random() * glitchChars.length)];
-                }).join("");
-                if (iterations >= originalText.length) {
+                }).join('');
+                if (iterations++ > 8) {
                     clearInterval(interval);
-                    element.innerText = originalText;
+                    target.innerText = originalText;
                 }
-                iterations += 1/3;
-            }, 30);
-        }
-
-        function runSiteCorruption() {
-            setInterval(() => {
-                if (Math.random() > 0.95) {
-                    const targets = document.querySelectorAll('.glitch-text');
-                    if (targets.length > 0) {
-                        const target = targets[Math.floor(Math.random() * targets.length)];
-                        glitchEffect(target, target.innerText);
-                    }
-                }
-            }, 4000);
+            }, 60);
+            setTimeout(applyGlitch, Math.random() * 2000 + 500);
         }
 
         async function initializeData() {
             try {
                 const [tRes, fRes] = await Promise.all([
-                    fetch(TRACKS_JSON_URL).then(res => res.ok ? res.json() : []),
-                    fetch(FILES_JSON_URL).then(res => res.ok ? res.json() : {})
+                    fetch(TRACKS_JSON_URL).then(r => r.json()).catch(() => []),
+                    fetch(FILES_JSON_URL).then(r => r.json()).catch(() => ({}))
                 ]);
-
                 audioTracks = tRes;
                 virtualFiles = fRes;
-                
-                if (audioTracks.length > 0) {
-                    loadTrack(0);
-                    addDiagLine("NETWORK_BUFFERS_READY");
-                } else {
-                    trackName.innerText = "NO_DATA_FOUND";
-                    addDiagLine("WARN: EMPTY_TRACKLIST", "orange");
-                }
+                if (audioTracks.length > 0) loadTrack(0);
+                addDiagLine("DATA_SYNC_SUCCESS");
             } catch (e) { 
-                addDiagLine("CRITICAL_BOOT_ERROR: CHECK /DATA/ FOLDER", "var(--crimson)"); 
+                addDiagLine("DATA_SYNC_ERROR", "var(--crimson)");
             }
         }
 
         function loadTrack(index) {
-            currentTrackIndex = index;
             const track = audioTracks[index];
             if (!track) return;
-            mainAudio.src = track.url.startsWith('http') ? track.url : (AUDIO_DIR + track.url);
-            trackName.innerText = track.name.toUpperCase();
+            trackNameDisplay.innerText = track.name.toUpperCase();
+            const encodedUrl = encodeURI(track.url);
+            mainAudio.src = encodedUrl;
+            mainAudio.load();
         }
 
-        function writeToConsole(text, color = "#666") {
-            const line = document.createElement('div');
-            line.style.color = color;
-            line.style.marginBottom = "2px";
-            line.innerText = text;
-            consoleOutput.appendChild(line);
-            consoleOutput.scrollTop = consoleOutput.scrollHeight;
-        }
-
-        function openVideoPlayer(src, title, lockClose = false) {
-            videoTitle.innerText = `STREAM: ${title.toUpperCase()}`;
-            videoPlayer.src = src;
-            videoOverlay.style.display = 'flex';
-            if (lockClose) {
-                videoCloseBtn.style.display = 'none';
-                videoPlayer.onended = closeVideoPlayer;
+        playBtn.onclick = async () => {
+            if (!isAudioCtxInit) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioCtx.createAnalyser();
+                    source = audioCtx.createMediaElementSource(mainAudio);
+                    source.connect(analyser);
+                    analyser.connect(audioCtx.destination);
+                    analyser.fftSize = 64;
+                    dataArray = new Uint8Array(analyser.frequencyBinCount);
+                    isAudioCtxInit = true;
+                    requestAnimationFrame(updateVUMeter);
+                } catch(e) { console.error("AudioContext init failed", e); }
+            }
+            if (mainAudio.paused) {
+                mainAudio.play().catch(err => {
+                    addDiagLine("PLAY_ERROR: " + err.name, "var(--crimson)");
+                    console.error("Playback failed:", err);
+                });
+                playBtn.innerText = "PAUSE";
             } else {
-                videoCloseBtn.style.display = 'block';
-                videoPlayer.onended = null;
+                mainAudio.pause();
+                playBtn.innerText = "PLAY";
             }
-            videoPlayer.play();
-        }
+        };
 
-        function closeVideoPlayer() {
-            videoPlayer.pause();
-            videoPlayer.src = "";
-            videoOverlay.style.display = 'none';
-            videoCloseBtn.style.display = 'block'; 
-        }
+        skipBtn.onclick = () => {
+            currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
+            loadTrack(currentTrackIndex);
+            mainAudio.play().catch(() => {});
+            playBtn.innerText = "PAUSE";
+        };
 
-        consoleInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const raw = consoleInput.value.trim();
-                const [cmd, arg] = raw.toLowerCase().split(' ');
-                consoleInput.value = '';
-                writeToConsole(`> ${raw.toUpperCase()}`, "#aaa");
+        mainAudio.ontimeupdate = () => {
+            if (!mainAudio.duration) return;
+            const progress = (mainAudio.currentTime / mainAudio.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+            const m = Math.floor(mainAudio.currentTime / 60);
+            const s = Math.floor(mainAudio.currentTime % 60);
+            currentTimeDisplay.innerText = `${m}:${s.toString().padStart(2, '0')}`;
+        };
 
-                if (cmd === 'help') {
-                    writeToConsole("COMMANDS: LIST, OPEN [FILE], TIMEWARP");
-                }
-                else if (cmd === 'list') {
-                    const files = Object.keys(virtualFiles);
-                    if (files.length === 0) writeToConsole("NO FILES FOUND.");
-                    else files.forEach(f => writeToConsole(` - ${f}`));
-                }
-                else if (cmd === 'timewarp') {
-                    writeToConsole("ACTIVATE_TIMEWARP", "var(--crimson)");
-                    writeToConsole("SKIPPING 1 YEAR...", "var(--crimson)");
-                    openVideoPlayer("log clips/oneyear.mp4", "TIMEWARP_SEQUENCE", true);
-                }
-                else if (cmd === 'open' && virtualFiles[arg]) {
-                    writeToConsole(`ACCESSING: ${arg.toUpperCase()}`, "var(--crimson)");
-                    writeToConsole(`\n${virtualFiles[arg].content}\n`);
-                    if (virtualFiles[arg].clip) openVideoPlayer(virtualFiles[arg].clip, arg);
-                }
-                else if (raw.length > 0) {
-                    writeToConsole("ERR: COMMAND NOT FOUND");
-                }
-            }
-        });
+        progressArea.onclick = (e) => {
+            if (!mainAudio.duration) return;
+            const rect = progressArea.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            mainAudio.currentTime = pos * mainAudio.duration;
+        };
 
-        function initAudioContext() {
-            if (isAudioContextInitialized) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                source = audioCtx.createMediaElementSource(mainAudio);
-                source.connect(analyser);
-                analyser.connect(audioCtx.destination);
-                analyser.fftSize = 128;
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-                isAudioContextInitialized = true;
-                updateVUMeter();
-            } catch(e) { console.error("Audio Context Error", e); }
-        }
-
-        const bars = Array.from({length: 16}, () => {
+        const bars = Array.from({length: 12}, () => {
             const b = document.createElement('div');
             b.className = 'vu-bar';
             vuContainer.appendChild(b);
@@ -544,44 +344,59 @@
         });
 
         function updateVUMeter() {
-            if (isAudioContextInitialized && !mainAudio.paused) {
+            if (isAudioCtxInit && !mainAudio.paused) {
                 analyser.getByteFrequencyData(dataArray);
                 bars.forEach((bar, i) => {
                     const val = dataArray[i * 2] || 0;
-                    bar.style.height = Math.max(2, (val/255)*18) + 'px';
-                    val > 40 ? bar.classList.add('active') : bar.classList.remove('active');
+                    bar.style.height = Math.max(2, (val / 255) * 18) + 'px';
+                    bar.style.backgroundColor = val > 200 ? 'var(--crimson)' : '#333';
                 });
             }
             requestAnimationFrame(updateVUMeter);
         }
 
-        playBtn.onclick = async () => {
-            if (audioTracks.length === 0) return;
-            initAudioContext();
-            if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
-            mainAudio.paused ? mainAudio.play() : mainAudio.pause();
-            playBtn.innerText = mainAudio.paused ? "PLAY" : "PAUSE";
-        };
+        function writeToConsole(text, color = "#666") {
+            const line = document.createElement('div');
+            line.style.color = color;
+            line.innerText = text;
+            consoleOutput.appendChild(line);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
 
-        skipBtn.onclick = () => {
-            if (audioTracks.length <= 1) return;
-            loadTrack((currentTrackIndex + 1) % audioTracks.length);
-            mainAudio.play();
-            playBtn.innerText = "PAUSE";
-        };
+        consoleInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const raw = consoleInput.value.trim();
+                const parts = raw.split(' ');
+                const cmd = parts[0].toLowerCase();
+                const arg = parts.slice(1).join(' ');
+                consoleInput.value = '';
+                writeToConsole(`> ${raw.toUpperCase()}`, "#aaa");
 
-        progressArea.onclick = (e) => {
-            if (!mainAudio.duration) return;
-            const percentage = (e.clientX - progressArea.getBoundingClientRect().left) / progressArea.offsetWidth;
-            mainAudio.currentTime = percentage * mainAudio.duration;
-        };
+                if (cmd === 'help') {
+                    writeToConsole("HELP, LIST, OPEN [FILE], WHOAMI, TIMEWARP");
+                } else if (cmd === 'list') {
+                    const files = Object.keys(virtualFiles);
+                    if (files.length === 0) writeToConsole("NO FILES DETECTED");
+                    else files.forEach(f => writeToConsole(`- ${f}`));
+                } else if (cmd === 'open') {
+                    const fileObj = virtualFiles[arg] || virtualFiles[arg.toLowerCase()];
+                    if (fileObj) writeToConsole(fileObj.content || "FILE_OPENED", "var(--crimson)");
+                    else writeToConsole("ERR: FILE_NOT_FOUND");
+                } else if (cmd === 'timewarp') {
+                   const warpSeconds = parseInt(arg) || 0;
+                   warpOffset += warpSeconds;
+                   writeToConsole(`TIME_WARP_SUCCESS: OFFSET_${warpOffset}S`, "var(--crimson)");
+                } else if (cmd !== '') {
+                    writeToConsole(`ERR: COMMAND_UNKNOWN '${cmd}'`);
+                }
+            }
+        });
 
         function addDiagLine(text, color = null) {
             const log = document.createElement('div');
             log.innerText = `> ${text}`;
             if (color) log.style.color = color;
             diagLogs.prepend(log);
-            if (diagLogs.children.length > 10) diagLogs.removeChild(diagLogs.lastChild);
         }
 
         function runBoot() {
@@ -590,54 +405,47 @@
             const timer = setInterval(() => {
                 if (i < bootData.length) {
                     const line = document.createElement('div');
-                    line.className = 'post-line';
                     line.innerText = `[ OK ] ${bootData[i++]}`;
                     screen.appendChild(line);
                 } else {
                     clearInterval(timer);
                     setTimeout(() => {
-                        screen.style.opacity = '0';
-                        setTimeout(() => {
-                            screen.remove();
-                            document.getElementById('app-content').style.opacity = '1';
-                            document.querySelectorAll('.typewriter-line').forEach(line => {
-                                setTimeout(() => line.classList.add('typing'), parseInt(line.getAttribute('data-delay')));
-                            });
-                            document.getElementById('diag-widget').style.opacity = '1';
-                            document.getElementById('audio-widget').style.opacity = '1';
-                            runSiteCorruption();
-                            runSystemLog();
-                        }, 400);
-                    }, 300);
+                        screen.remove();
+                        document.getElementById('app-content').style.opacity = '1';
+                        document.getElementById('diag-widget').style.opacity = '1';
+                        document.getElementById('audio-widget').style.opacity = '1';
+                        document.querySelectorAll('.typewriter-line').forEach(line => line.classList.add('typing'));
+                        applyGlitch();
+                    }, 500);
                 }
             }, 100);
         }
 
-        function toggleTerminal() {
-            const visible = consoleContainer.style.display === 'flex';
-            consoleContainer.style.display = visible ? 'none' : 'flex';
-            if (!visible) setTimeout(() => consoleInput.focus(), 10);
-        }
+        window.addEventListener('keydown', (e) => { 
+            if (e.key === '~' || e.key === '`') { 
+                e.preventDefault(); 
+                const isVisible = consoleContainer.style.display === 'flex';
+                consoleContainer.style.display = isVisible ? 'none' : 'flex'; 
+                if (!isVisible) consoleInput.focus(); 
+            } 
+        });
 
-        window.addEventListener('keydown', (e) => { if (e.key === '~' || e.key === '`') { e.preventDefault(); toggleTerminal(); } });
-        document.getElementById('terminal-trigger').onclick = toggleTerminal;
+        document.getElementById('terminal-trigger').onclick = () => { 
+            consoleContainer.style.display = 'flex'; 
+            consoleInput.focus(); 
+        };
 
         window.onload = () => {
             initializeData();
             runBoot();
             setInterval(() => {
-                const elapsed = Math.floor((Date.now() - siteBootTime) / 1000);
-                document.getElementById('uptime').innerText = `UP: ${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
-                document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 5 + 1)}%`;
+                const elapsed = Math.floor((Date.now() - siteBootTime) / 1000) + warpOffset;
+                const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+                const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+                const s = String(elapsed % 60).padStart(2, '0');
+                document.getElementById('uptime').innerText = `UP: ${h}:${m}:${s}`;
+                document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 8 + 1)}%`;
             }, 1000);
-        };
-
-        mainAudio.ontimeupdate = () => {
-            if (!mainAudio.duration) return;
-            progressBar.style.width = `${(mainAudio.currentTime / mainAudio.duration) * 100}%`;
-            const m = Math.floor(mainAudio.currentTime / 60);
-            const s = Math.floor(mainAudio.currentTime % 60);
-            currentTimeDisplay.innerText = `${m}:${s.toString().padStart(2, '0')}`;
         };
     </script>
 </body>
