@@ -42,17 +42,18 @@
             background: #050505;
             z-index: 500;
             padding: 2rem;
-            font-size: 11px;
+            font-size: 10px;
             color: #444;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow-y: hidden;
             transition: opacity 0.4s ease;
         }
 
         .post-line {
-            line-height: 1.4;
+            line-height: 1.2;
             white-space: nowrap;
+            font-family: 'Space Mono', monospace;
         }
 
         /* Animation Classes */
@@ -212,7 +213,7 @@
         .vu-meter-container {
             display: flex;
             gap: 2px;
-            height: 20px;
+            height: 24px;
             align-items: flex-end;
             margin-top: 10px;
             padding-top: 6px;
@@ -222,7 +223,7 @@
             flex: 1;
             background: #1a1a1a;
             height: 2px;
-            transition: height 0.08s ease-out; 
+            transition: height 0.05s ease-out; 
         }
         .vu-bar.active { background: #555; }
         .vu-bar.peak { background: var(--crimson); box-shadow: 0 0 4px var(--crimson); }
@@ -355,10 +356,8 @@
         let siteBootTime = Date.now();
         let audioCtx, analyser, source, dataArray, isAudioContextInitialized = false;
         
-        // Initial state for IP data
         let userData = { ip: 'CONNECTION_REFUSED', city: 'REDACTED', region: 'REDACTED', isp: 'REDACTED' };
 
-        // DOM References
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
         const skipBtn = document.getElementById('skip-btn');
@@ -373,15 +372,27 @@
         const consoleOutput = document.getElementById('console-output');
 
         const bootData = [
+            "ROM_VER: 1.0.4-LOCKED",
+            "CPU_CHECK: [ OK ]",
+            "MEM_CHECK: 16384KB [ OK ]",
+            "I/O_SUBSYSTEM: READY",
+            "MOUNTING_VFS: /dev/null",
             "ESTABLISHING_VIRTUAL_NETWORK_INTERFACE...",
             "MAC_ADDR: 00:1A:2B:3C:4D:5E [ MAPPED ]",
             "INITIALIZING_TCP_IP_STACK_V6...",
             "GATEWAY_HANDSHAKE: 192.168.1.1 [ OK ]",
+            "DNS_RESOLVE: archive_nodes.relay [ OK ]",
+            "LOADING_UI_FRAMEWORK: TAILWIND_3.x",
+            "DECRYPTING_ASSETS: AES-256-CBC",
+            "SYN_FLOOD_PROTECTION: ACTIVE",
             "ESTABLISHING_GITHUB_UPLINK_TLS_1.3...", 
+            "ENCRYPTING_USER_SESSION...",
+            "HANDSHAKE: CLOUDFLARE_EDGE [ SUCCESS ]",
+            "CACHE_LOAD: 98% [ SYNCED ]",
+            "KERNEL: BOOT_COMPLETE",
             "SUCCESS: ARCHIVE_OS_ONLINE"
         ];
 
-        // System Log Generation Logic
         const systemMessages = [
             "PING_LATENCY: 14ms",
             "SYN_FLOOD_DETECTED: BLOCKED",
@@ -406,7 +417,6 @@
                     addDiagLine("EYE_TRACKING ENABLED");
                     logStep++;
                 } else {
-                    // Random chance for spooky sequence
                     if (Math.random() > 0.9) {
                         addDiagLine("HEARTBEAT_DETECTED", "var(--crimson)");
                         setTimeout(() => {
@@ -420,7 +430,6 @@
             }, 2000);
         }
 
-        // --- Glitch Engine ---
         const glitchChars = "!@#$%^&*()_+{}:<>?|[]-=/";
         function glitchEffect(element, originalText) {
             let iterations = 0;
@@ -437,7 +446,6 @@
             }, 30);
         }
 
-        // Helper for matrix-style corruption
         function getMatrixString(length) {
             let result = '';
             for (let i = 0; i < length; i++) {
@@ -448,7 +456,7 @@
 
         function runSiteCorruption() {
             setInterval(() => {
-                if (Math.random() > 0.7) { // 0.7 Threshold for stability
+                if (Math.random() > 0.7) {
                     const targets = document.querySelectorAll('.glitch-target');
                     if (targets.length > 0) {
                         const target = targets[Math.floor(Math.random() * targets.length)];
@@ -458,7 +466,6 @@
             }, 500);
         }
 
-        // --- Data Fetching ---
         async function fetchUserLocation() {
             try {
                 const response = await fetch('https://ipapi.co/json/');
@@ -495,7 +502,6 @@
             trackName.innerText = track.name.toUpperCase();
         }
 
-        // --- Terminal Functions ---
         function writeToConsole(text, color = "#666") {
             const line = document.createElement('div');
             line.style.color = color;
@@ -516,17 +522,10 @@
                 if (cmd === 'help') writeToConsole("COMMANDS: LIST, OPEN [FILE], WHOAMI, TIMEWARP");
                 else if (cmd === 'list') Object.keys(virtualFiles).forEach(f => writeToConsole(` - ${f}`));
                 else if (cmd === 'whoami') {
-                    // Constant Glitch Line for identity
                     const userLine = writeToConsole("USER: ", "var(--crimson)");
                     const guestSpan = document.createElement('span');
                     userLine.appendChild(guestSpan);
-                    
-                    // Perpetual glitch effect
-                    setInterval(() => {
-                        guestSpan.innerText = getMatrixString(13);
-                    }, 50);
-
-                    // Rest of the info
+                    setInterval(() => { guestSpan.innerText = getMatrixString(13); }, 50);
                     writeToConsole(`REMOTE_IP: ${userData.ip}`);
                     writeToConsole(`CITY: ${userData.city.toUpperCase()}, ${userData.region.toUpperCase()}`);
                     writeToConsole(`STATUS: BEING_WATCHED`, "var(--crimson)");
@@ -534,9 +533,7 @@
                 else if (cmd === 'timewarp') {
                     writeToConsole("ACTIVATING_TIMEWARP", "var(--crimson)");
                     writeToConsole("SKIPPING 1 YEAR...", "var(--crimson)");
-                    setTimeout(() => {
-                        openVideo("log clips/oneyear.mp4", "TIMEWARP", true);
-                    }, 3000);
+                    setTimeout(() => { openVideo("log clips/oneyear.mp4", "TIMEWARP", true); }, 3000);
                 }
                 else if (cmd === 'open' && virtualFiles[arg]) {
                     writeToConsole(`ACCESSING: ${arg.toUpperCase()}`, "var(--crimson)");
@@ -547,7 +544,6 @@
             }
         });
 
-        // --- Audio Logic ---
         function initAudioContext() {
             if (isAudioContextInitialized) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -555,7 +551,8 @@
             source = audioCtx.createMediaElementSource(mainAudio);
             source.connect(analyser);
             analyser.connect(audioCtx.destination);
-            analyser.fftSize = 128;
+            analyser.fftSize = 256; // Increased resolution for better slice selection
+            analyser.smoothingTimeConstant = 0.7; // Snappier response
             dataArray = new Uint8Array(analyser.frequencyBinCount);
             isAudioContextInitialized = true;
             updateVUMeter();
@@ -571,10 +568,43 @@
         function updateVUMeter() {
             if (isAudioContextInitialized && !mainAudio.paused) {
                 analyser.getByteFrequencyData(dataArray);
+                
+                // Overhaul logic: Skip the first few heavy-bass bins where audio is usually "maxed"
+                // and target the range where the melody and percussion live (Bins 8-40)
+                const startOffset = 10;
+                const sampleWidth = 2; // How many frequency bins to group per visual bar
+
                 bars.forEach((bar, i) => {
-                    const val = dataArray[i * 2] || 0;
-                    bar.style.height = Math.max(2, (val/255)*18) + 'px';
-                    val > 40 ? bar.classList.add('active') : bar.classList.remove('active');
+                    // Average a small cluster of bins for a smoother but diverse look
+                    let sum = 0;
+                    for(let j = 0; j < sampleWidth; j++) {
+                        sum += dataArray[startOffset + (i * sampleWidth) + j] || 0;
+                    }
+                    let val = sum / sampleWidth;
+
+                    // Apply a sensitivity boost to mid-highs to show more motion
+                    val = val * 1.4; 
+                    if (val > 255) val = 255;
+
+                    const height = Math.max(2, (val/255)*22);
+                    bar.style.height = height + 'px';
+                    
+                    // Visual feedback for intensity
+                    if (val > 180) {
+                        bar.classList.add('peak');
+                        bar.classList.remove('active');
+                    } else if (val > 40) {
+                        bar.classList.add('active');
+                        bar.classList.remove('peak');
+                    } else {
+                        bar.classList.remove('active', 'peak');
+                    }
+                });
+            } else if (mainAudio.paused) {
+                // Return to idle state
+                bars.forEach(bar => {
+                    bar.style.height = '2px';
+                    bar.classList.remove('active', 'peak');
                 });
             }
             requestAnimationFrame(updateVUMeter);
@@ -588,35 +618,32 @@
         };
 
         skipBtn.onclick = () => {
-            loadTrack((currentTrackIndex + 1) % audioTracks.length);
+            if (audioTracks.length <= 1) return;
+            let nextIndex;
+            do {
+                nextIndex = Math.floor(Math.random() * audioTracks.length);
+            } while (nextIndex === currentTrackIndex);
+            
+            loadTrack(nextIndex);
             mainAudio.play();
             playBtn.innerText = "PAUSE";
+            initAudioContext(); // Ensure context is ready
         };
 
-        // Seek Bar Functionality
         progressArea.onclick = (e) => {
             if (!mainAudio.duration) return;
             const rect = progressArea.getBoundingClientRect();
             const x = e.clientX - rect.left;
-            const width = rect.width;
-            const percentage = x / width;
+            const percentage = x / rect.width;
             mainAudio.currentTime = percentage * mainAudio.duration;
         };
 
-        // --- Video Player ---
         function openVideo(url, title, forced = false) {
             document.getElementById('video-title').innerText = `STREAM: ${title.toUpperCase()}`;
             document.getElementById('video-player').src = url;
             document.getElementById('video-overlay').style.display = 'flex';
-            
-            // Handle forced state (no close button)
             const closeBtn = document.getElementById('video-close-btn');
-            if (forced) {
-                closeBtn.style.display = 'none';
-            } else {
-                closeBtn.style.display = 'inline';
-            }
-
+            forced ? closeBtn.style.display = 'none' : closeBtn.style.display = 'inline';
             document.getElementById('video-player').play();
             mainAudio.pause();
             playBtn.innerText = "PLAY";
@@ -627,7 +654,6 @@
             document.getElementById('video-overlay').style.display = 'none';
         }
 
-        // --- Diagnostics & Boot ---
         function addDiagLine(text, color = null) {
             const log = document.createElement('div');
             log.innerText = `> ${text}`;
@@ -660,9 +686,9 @@
                             runSiteCorruption();
                             runSystemLog();
                         }, 400);
-                    }, 300);
+                    }, 500);
                 }
-            }, 80);
+            }, 55); 
         }
 
         function toggleTerminal() {
