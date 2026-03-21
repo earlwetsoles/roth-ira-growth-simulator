@@ -225,7 +225,7 @@
             flex: 1;
             background: #1a1a1a;
             height: 2px;
-            transition: height 0.05s ease-out; 
+            transition: height 0.08s ease-out; 
         }
         .vu-bar.active { background: #555; }
         .vu-bar.peak { background: var(--crimson); box-shadow: 0 0 4px var(--crimson); }
@@ -349,7 +349,7 @@
     </main>
 
     <script>
-        // Use relative paths for local development or full URLs for GitHub
+        // Use relative paths to ensure it works on GitHub Pages or local servers
         const TRACKS_JSON_URL = "data/tracks.json";
         const FILES_JSON_URL = "data/terminal_files.json";
 
@@ -464,33 +464,38 @@
 
         async function initializeData() {
             addDiagLine("SYNCING_REMOTE_ASSETS...");
-            try {
-                // Parallel fetch to reduce load time
-                const [tracksRes, filesRes] = await Promise.all([
-                    fetch(TRACKS_JSON_URL).then(res => {
-                        if (!res.ok) throw new Error(`Tracks load failed: ${res.status}`);
-                        return res.json();
-                    }),
-                    fetch(FILES_JSON_URL).then(res => {
-                        if (!res.ok) throw new Error(`Files load failed: ${res.status}`);
-                        return res.json();
-                    })
-                ]);
+            
+            // Attempt to load JSON with no-cache to avoid staleness
+            const fetchOptions = { cache: "no-store" };
 
-                audioTracks = tracksRes;
-                virtualFiles = filesRes;
+            try {
+                // Fetch Tracks
+                const tracksRes = await fetch(TRACKS_JSON_URL, fetchOptions);
+                if (!tracksRes.ok) throw new Error(`HTTP_${tracksRes.status}`);
+                audioTracks = await tracksRes.json();
+                addDiagLine("TRACKS_SYNC: [ OK ]");
+
+                // Fetch Virtual Files
+                const filesRes = await fetch(FILES_JSON_URL, fetchOptions);
+                if (!filesRes.ok) throw new Error(`HTTP_${filesRes.status}`);
+                virtualFiles = await filesRes.json();
+                addDiagLine("FILES_SYNC: [ OK ]");
 
                 if (audioTracks && audioTracks.length > 0) {
                     loadTrack(0);
                     addDiagLine("REMOTE_SYNC: [ SUCCESS ]");
                 } else {
-                    addDiagLine("SYNC_ERR: TRACKLIST_EMPTY", "var(--crimson)");
-                    trackName.innerText = "NO TRACKS FOUND";
+                    throw new Error("EMPTY_TRACKLIST");
                 }
             } catch (e) { 
                 console.error("Initialization error:", e);
-                addDiagLine("SYNC_ERR: " + e.message.toUpperCase(), "var(--crimson)");
+                addDiagLine(`SYNC_ERR: ${e.message.toUpperCase()}`, "var(--crimson)");
                 trackName.innerText = "SYNC ERROR";
+                
+                // Fallback UI indication if data folders are missing
+                if (e.message.includes("404")) {
+                    addDiagLine("CHECK: DATA/ FOLDER EXISTS?", "var(--crimson)");
+                }
             }
         }
 
@@ -500,6 +505,7 @@
             const track = audioTracks[index];
             if (!track) return;
             
+            // Ensure URL is relative to the root if not absolute
             mainAudio.src = track.url;
             mainAudio.load(); 
             trackName.innerText = track.name.toUpperCase();
@@ -536,6 +542,7 @@
                 }
                 else if (cmd === 'open' && virtualFiles[arg]) {
                     if (virtualFiles[arg].type === 'video') openVideo(virtualFiles[arg].url, arg);
+                    else if (virtualFiles[arg].type === 'external') window.open(virtualFiles[arg].url, '_blank');
                     else writeToConsole(`\n${virtualFiles[arg].content}\n`, "var(--terminal-off-white)");
                 }
                 else writeToConsole("ERR: ACCESS_DENIED");
@@ -550,12 +557,14 @@
                 source = audioCtx.createMediaElementSource(mainAudio);
                 source.connect(analyser);
                 analyser.connect(audioCtx.destination);
-                analyser.fftSize = 128;
+                analyser.fftSize = 64; 
+                analyser.smoothingTimeConstant = 0.8;
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
                 isAudioContextInitialized = true;
                 updateVUMeter();
             } catch (e) {
                 console.error("AudioContext blocked:", e);
+                addDiagLine("AUDIO_CTX: BLOCKED", "var(--crimson)");
             }
         }
 
@@ -570,11 +579,13 @@
             if (isAudioContextInitialized && !mainAudio.paused) {
                 analyser.getByteFrequencyData(dataArray);
                 bars.forEach((bar, i) => {
-                    const val = dataArray[i * 2] || 0;
-                    const height = Math.max(2, (val/255)*22);
+                    let val = dataArray[i] / 255;
+                    val = Math.pow(val, 1.5);
+                    const height = Math.max(2, val * 22);
                     bar.style.height = height + 'px';
-                    if (val > 200) bar.classList.add('peak');
-                    else if (val > 50) { bar.classList.add('active'); bar.classList.remove('peak'); }
+                    
+                    if (val > 0.8) bar.classList.add('peak');
+                    else if (val > 0.2) { bar.classList.add('active'); bar.classList.remove('peak'); }
                     else bar.classList.remove('active', 'peak');
                 });
             } else {
@@ -584,8 +595,10 @@
         }
 
         playBtn.onclick = async () => {
-            if (!audioTracks || audioTracks.length === 0) return;
-            
+            if (!audioTracks || audioTracks.length === 0) {
+                addDiagLine("ERR: NO_MEDIA_LOADED", "var(--crimson)");
+                return;
+            }
             initAudioContext();
             if (audioCtx && audioCtx.state === 'suspended') await audioCtx.resume();
             
@@ -593,7 +606,7 @@
                 mainAudio.play().then(() => {
                     playBtn.innerText = "PAUSE";
                 }).catch(err => {
-                    addDiagLine("STREAM_INTERRUPTED");
+                    addDiagLine("PLAY_ERR: " + err.message.toUpperCase(), "var(--crimson)");
                 });
             } else {
                 mainAudio.pause();
@@ -607,7 +620,6 @@
             do {
                 nextIndex = Math.floor(Math.random() * audioTracks.length);
             } while (nextIndex === currentTrackIndex);
-            
             loadTrack(nextIndex);
             mainAudio.play().then(() => playBtn.innerText = "PAUSE");
         };
