@@ -358,8 +358,13 @@
     </main>
 
     <script>
-        // Set REPO_BASE to root since files are in the same folder as index.html
-        const REPO_BASE = "./"; 
+        /**
+         * PATH HANDLING LOGIC
+         * Adjusts the REPO_BASE if we are in a GitHub repository subpath.
+         */
+        const isGithubRepo = window.location.pathname.includes('ARCHIVE-website');
+        const REPO_BASE = isGithubRepo ? '/ARCHIVE-website/' : './';
+        
         const TRACKS_JSON_URL = REPO_BASE + "tracks.json";
         const FILES_JSON_URL = REPO_BASE + "terminal_files.json";
 
@@ -446,13 +451,13 @@
             try {
                 const tracksPromise = fetch(TRACKS_JSON_URL)
                     .then(res => {
-                        if(!res.ok) throw new Error(`HTTP ${res.status} fetching tracks`);
+                        if(!res.ok) throw new Error(`HTTP ${res.status} fetching tracks from ${TRACKS_JSON_URL}`);
                         return res.json();
                     });
 
                 const filesPromise = fetch(FILES_JSON_URL)
                     .then(res => {
-                        if(!res.ok) throw new Error(`HTTP ${res.status} fetching files`);
+                        if(!res.ok) throw new Error(`HTTP ${res.status} fetching files from ${FILES_JSON_URL}`);
                         return res.json();
                     });
 
@@ -489,7 +494,8 @@
             currentTrackIndex = index;
             const track = audioTracks[index];
             if (!track) return;
-            mainAudio.src = track.url;
+            // Resolve track URL relative to REPO_BASE
+            mainAudio.src = track.url.startsWith('http') ? track.url : (REPO_BASE + track.url);
             trackName.innerText = track.name.toUpperCase();
         }
 
@@ -505,7 +511,8 @@
 
         function openVideoPlayer(src, title, lockClose = false) {
             videoTitle.innerText = `STREAM: ${title.toUpperCase()}`;
-            videoPlayer.src = src;
+            // Resolve video src relative to REPO_BASE
+            videoPlayer.src = src.startsWith('http') ? src : (REPO_BASE + src);
             videoOverlay.style.display = 'flex';
             
             if (lockClose) {
@@ -525,7 +532,7 @@
             videoPlayer.pause();
             videoPlayer.src = "";
             videoOverlay.style.display = 'none';
-            videoCloseBtn.style.display = 'block'; // Reset for next time
+            videoCloseBtn.style.display = 'block'; 
         }
 
         consoleInput.addEventListener('keydown', (e) => {
@@ -536,6 +543,7 @@
                 writeToConsole(`> ${raw.toUpperCase()}`, "#aaa");
 
                 if (cmd === 'help') {
+                    // Help menu matches your requirement (no "clear")
                     writeToConsole("COMMANDS: LIST, OPEN [FILE], TIMEWARP");
                 }
                 else if (cmd === 'list') {
@@ -549,14 +557,19 @@
                 else if (cmd === 'timewarp') {
                     writeToConsole("ACTIVATE_TIMEWARP", "var(--crimson)");
                     writeToConsole("SKIPPING 1 YEAR...", "var(--crimson)");
-                    // Path to Github hosted mp4
                     openVideoPlayer("log clips/oneyear.mp4", "TIMEWARP_SEQUENCE", true);
                 }
                 else if (cmd === 'open' && virtualFiles[arg]) {
                     writeToConsole(`ACCESSING: ${arg.toUpperCase()}`, "var(--crimson)");
                     writeToConsole(`\n${virtualFiles[arg].content}\n`);
+                    // Check if file has an associated video clip
+                    if (virtualFiles[arg].clip) {
+                        openVideoPlayer(virtualFiles[arg].clip, arg);
+                    }
                 }
-                else writeToConsole("ERR: COMMAND NOT FOUND");
+                else if (raw.length > 0) {
+                    writeToConsole("ERR: COMMAND NOT FOUND");
+                }
             }
         });
 
