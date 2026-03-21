@@ -124,11 +124,49 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         .link-item { border-bottom: 1px solid #1a1a1a; display: inline-block; cursor: pointer; transition: all 0.2s; }
         .link-item:hover { color: #ff3e3e; padding-left: 8px; border-bottom-color: var(--crimson); }
+
+        /* Video Popup Layer */
+        #video-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 20000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        .video-window {
+            width: 90%;
+            max-width: 900px;
+            background: #000;
+            border: 1px solid #222;
+            padding: 4px;
+        }
+        .video-header {
+            background: #111;
+            padding: 5px 10px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            border-bottom: 1px solid #222;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 <body class="p-8 md:p-24 pb-48 md:pb-24">
 
     <div id="boot-screen"></div>
+
+    <div id="video-overlay">
+        <div class="video-window">
+            <div class="video-header">
+                <span id="video-title">STREAMING_LOG...</span>
+                <span onclick="closeVideo()" class="cursor-pointer text-red-700 font-bold">[X] CLOSE</span>
+            </div>
+            <video id="video-player" style="width:100%" controls></video>
+        </div>
+    </div>
 
     <div id="console-container">
         <div id="console-output"></div>
@@ -235,6 +273,9 @@
         const consoleContainer = document.getElementById('console-container');
         const consoleInput = document.getElementById('console-input');
         const consoleOutput = document.getElementById('console-output');
+        const videoOverlay = document.getElementById('video-overlay');
+        const videoPlayer = document.getElementById('video-player');
+        const videoTitle = document.getElementById('video-title');
 
         const bootData = [
             "ESTABLISHING_VIRTUAL_NETWORK_INTERFACE...",
@@ -304,7 +345,6 @@
             if (mainAudio.paused) {
                 mainAudio.play().catch(err => {
                     addDiagLine("PLAY_ERROR: " + err.name, "var(--crimson)");
-                    console.error("Playback failed:", err);
                 });
                 playBtn.innerText = "PAUSE";
             } else {
@@ -380,8 +420,22 @@
                     else files.forEach(f => writeToConsole(`- ${f}`));
                 } else if (cmd === 'open') {
                     const fileObj = virtualFiles[arg] || virtualFiles[arg.toLowerCase()];
-                    if (fileObj) writeToConsole(fileObj.content || "FILE_OPENED", "var(--crimson)");
-                    else writeToConsole("ERR: FILE_NOT_FOUND");
+                    if (fileObj) {
+                        // FIX: Added encodeURI for terminal files and proper video handling
+                        if (fileObj.type === 'video') {
+                            videoTitle.innerText = `LOG_STREAM: ${arg.toUpperCase()}`;
+                            videoPlayer.src = encodeURI(fileObj.url);
+                            videoOverlay.style.display = 'flex';
+                            videoPlayer.play();
+                            mainAudio.pause();
+                            playBtn.innerText = "PLAY";
+                        } else if (fileObj.type === 'external') {
+                            writeToConsole(`OPENING_EXTERNAL_ARCHIVE: ${arg.toUpperCase()}`);
+                            window.open(fileObj.url, '_blank');
+                        }
+                    } else {
+                        writeToConsole("ERR: FILE_NOT_FOUND");
+                    }
                 } else if (cmd === 'timewarp') {
                    const warpSeconds = parseInt(arg) || 0;
                    warpOffset += warpSeconds;
@@ -391,6 +445,12 @@
                 }
             }
         });
+
+        function closeVideo() {
+            videoPlayer.pause();
+            videoPlayer.src = "";
+            videoOverlay.style.display = 'none';
+        }
 
         function addDiagLine(text, color = null) {
             const log = document.createElement('div');
