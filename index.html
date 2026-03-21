@@ -24,7 +24,7 @@
             padding: 0;
         }
 
-        /* CRT Scanline */
+        /* CRT Scanline Overlay */
         .scanline {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -35,7 +35,7 @@
             opacity: 0.3;
         }
 
-        /* Rapid POST Sequence Overlay */
+        /* Boot Screen Sequence */
         #boot-screen {
             position: fixed;
             inset: 0;
@@ -55,7 +55,7 @@
             white-space: nowrap;
         }
 
-        /* Typewriter Animation */
+        /* Animation Classes */
         .typewriter-line {
             overflow: hidden;
             white-space: nowrap;
@@ -73,7 +73,7 @@
             to { width: 100% }
         }
 
-        /* Link Styling */
+        /* Navigation Links */
         .link-item {
             border-bottom: 1px solid #1a1a1a;
             transition: all 0.2s ease;
@@ -88,7 +88,7 @@
             text-shadow: 0 0 5px var(--crimson);
         }
 
-        /* Widgets */
+        /* Sidebar Widgets */
         .widget-box {
             position: fixed;
             background: rgba(10, 10, 10, 0.9);
@@ -127,13 +127,15 @@
         }
 
         .widget-title { color: var(--crimson); font-weight: bold; }
+        
+        /* Audio Player Styling */
         .progress-container { width: 100%; height: 4px; background: #1a1a1a; margin: 8px 0; cursor: pointer; position: relative; }
         .progress-bar { height: 100%; background: var(--crimson); width: 0%; transition: width 0.1s linear; pointer-events: none; }
         .audio-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
         .audio-btn { background: none; border: none; color: #444; cursor: pointer; padding: 0; transition: color 0.2s; }
         .audio-btn:hover { color: var(--terminal-off-white); }
 
-        /* Terminal Cursor Styling */
+        /* Terminal UI Components */
         .terminal-cursor {
             display: inline-block;
             width: 8px;
@@ -142,7 +144,6 @@
             animation: blink 1s step-end infinite;
             vertical-align: middle;
             cursor: pointer;
-            position: relative;
         }
         
         @keyframes blink {
@@ -150,7 +151,6 @@
             50% { opacity: 0; }
         }
 
-        /* Hidden Terminal Console */
         #console-container {
             position: fixed;
             bottom: 0;
@@ -174,10 +174,9 @@
             color: #666;
             max-height: 250px;
         }
-        .console-input-row {
-            display: flex;
-            align-items: center;
-        }
+
+        .console-input-row { display: flex; align-items: center; }
+        
         #console-input {
             background: transparent;
             border: none;
@@ -188,7 +187,7 @@
             font-family: 'Space Mono', monospace;
         }
 
-        /* Video Overlay */
+        /* Video Player Layer */
         #video-overlay {
             position: fixed;
             inset: 0;
@@ -208,32 +207,8 @@
             position: relative;
             padding: 4px;
         }
-        .video-window-header {
-            background: #111;
-            border-bottom: 1px solid #222;
-            padding: 4px 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 9px;
-            color: #555;
-            text-transform: uppercase;
-        }
-        #video-player {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .close-video {
-            cursor: pointer;
-            color: var(--crimson);
-            font-weight: bold;
-        }
-        .close-video.hidden {
-            display: none !important;
-        }
 
-        /* VU Meter */
+        /* Audio Visualization */
         .vu-meter-container {
             display: flex;
             gap: 2px;
@@ -251,6 +226,21 @@
         }
         .vu-bar.active { background: #555; }
         .vu-bar.peak { background: var(--crimson); box-shadow: 0 0 4px var(--crimson); }
+        
+        /* Pulse Dot class to reuse */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #991b1b;
+            border-radius: 9999px;
+            box-shadow: 0 0 8px #991b1b;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
     </style>
 </head>
 <body class="p-8 md:p-24 pb-48 md:pb-24">
@@ -258,22 +248,18 @@
     <div id="boot-screen"></div>
     <div class="scanline"></div>
 
+    <!-- Hidden Video Player -->
     <div id="video-overlay">
         <div class="video-window">
-            <div class="video-window-header">
-                <div class="flex items-center gap-2">
-                    <div class="w-1.5 h-1.5 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b] animate-pulse"></div>
-                    <span id="video-status-text" class="opacity-60">UPLINK_STREAM_ACTIVE</span>
-                </div>
-                <div class="flex gap-4">
-                    <span id="video-title">STATUS: IDLE</span>
-                    <span class="close-video" id="video-close-btn" onclick="closeVideoPlayer()">[X] CLOSE</span>
-                </div>
+            <div class="flex justify-between items-center p-2 text-[10px] bg-zinc-900 border-b border-zinc-800 text-zinc-500">
+                <span id="video-title">STREAM: IDLE</span>
+                <span id="video-close-btn" class="cursor-pointer text-red-800 hover:text-red-500" onclick="closeVideoPlayer()">[X] CLOSE</span>
             </div>
-            <video id="video-player"></video>
+            <video id="video-player" class="w-full"></video>
         </div>
     </div>
 
+    <!-- Terminal Container -->
     <div id="console-container">
         <div id="console-output"></div>
         <div class="console-input-row">
@@ -300,60 +286,54 @@
             <span class="widget-title">AUDIO</span>
             <span id="current-time" class="text-white opacity-60">0:00</span> 
         </div>
-        <div class="mb-1 truncate text-white opacity-80" id="track-name">INITIALIZING...</div>
+        <div class="flex items-center gap-2 mb-1">
+            <div class="status-dot flex-shrink-0"></div>
+            <div class="truncate text-white opacity-80" id="track-name">INITIALIZING...</div>
+        </div>
         <div class="progress-container" id="progress-area">
             <div class="progress-bar" id="progress-bar"></div>
         </div>
-        
         <div class="audio-controls">
-            <div class="hidden md:flex items-center gap-2">
-                <div class="w-1.5 h-1.5 bg-red-800 rounded-full animate-pulse"></div>
-                <span class="text-[7px] uppercase tracking-tighter opacity-50">Safe Mode</span>
-            </div>
-            <div class="flex gap-2 md:gap-4 w-full md:w-auto justify-between md:justify-end">
-                <button class="audio-btn font-bold text-white" id="play-btn">PLAY</button>
-                <button class="audio-btn font-bold" id="skip-btn">SKIP</button>
-                <button class="audio-btn hidden md:block" id="mute-btn">MUTE</button>
-            </div>
+            <button class="audio-btn font-bold text-white" id="play-btn">PLAY</button>
+            <button class="audio-btn font-bold" id="skip-btn">SKIP</button>
         </div>
-
         <div class="vu-meter-container" id="vu-meter"></div>
-        <audio id="main-audio" crossOrigin="anonymous"></audio>
+        <audio id="main-audio" crossorigin="anonymous"></audio>
     </div>
 
-    <!-- Main Content -->
+    <!-- Main Navigation Content -->
     <main id="app-content" class="max-w-2xl relative z-20 opacity-0">
         <header class="mb-12 md:mb-20">
             <div class="flex items-center gap-3 mb-4 typewriter-line" data-delay="0">
-                <div class="w-2 h-2 bg-red-800 rounded-full shadow-[0_0_8px_#991b1b] animate-pulse"></div>
-                <h1 class="text-white text-xl tracking-tighter">ARCHIVE_01</h1>
+                <div class="status-dot"></div>
+                <h1 class="text-white text-xl tracking-tighter glitch-target">ARCHIVE_01</h1>
             </div>
         </header>
 
         <section class="space-y-8 md:space-y-12">
             <div class="group typewriter-line" data-delay="1600">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">01 / Utilities</span>
-                <a href="utilities.html" class="link-item w-full block py-2 text-lg">Web Tools</a>
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-target">01 / Utilities</span>
+                <a href="utilities.html" class="link-item w-full block py-2 text-lg glitch-target">Web Tools</a>
             </div>
 
             <div class="group typewriter-line" data-delay="2400">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">02 / Visuals</span>
-                <a href="galleries.html" class="link-item w-full block py-2 text-lg">Gallery</a>
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-target">02 / Visuals</span>
+                <a href="galleries.html" class="link-item w-full block py-2 text-lg glitch-target">Gallery</a>
             </div>
 
             <div class="group typewriter-line" data-delay="3200">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">03 / Documentation</span>
-                <a href="#" class="link-item w-full block py-2 text-lg">Writings</a>
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-target">03 / Documentation</span>
+                <a href="#" class="link-item w-full block py-2 text-lg glitch-target">Writings</a>
             </div>
 
             <div class="group typewriter-line" data-delay="4000">
-                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest">04 / Network</span>
+                <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-target">04 / Network</span>
                 <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm">CSFloat</a>
-                    <a href="https://www.inaturalist.org/observations?place_id=any&user_id=jiwt&verifiable=any" target="_blank" class="link-item py-2 text-sm">iNaturalist</a>
-                    <a href="https://letterboxd.com/Jiwt/" target="_blank" class="link-item py-2 text-sm">Letterboxd</a>
-                    <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm">LighterPack</a>
-                    <a href="https://twitch.tv/Jiwt" target="_blank" class="link-item py-2 text-sm">Twitch</a>
+                    <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item py-2 text-sm glitch-target">CSFloat</a>
+                    <a href="https://www.inaturalist.org/observations?place_id=any&user_id=jiwt&verifiable=any" target="_blank" class="link-item py-2 text-sm glitch-target">iNaturalist</a>
+                    <a href="https://letterboxd.com/Jiwt/" target="_blank" class="link-item py-2 text-sm glitch-target">Letterboxd</a>
+                    <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item py-2 text-sm glitch-target">LighterPack</a>
+                    <a href="https://www.twitch.tv/Jiwt" target="_blank" class="link-item py-2 text-sm glitch-target">Twitch</a>
                 </div>
             </div>
         </section>
@@ -374,9 +354,11 @@
         let currentTrackIndex = 0;
         let siteBootTime = Date.now();
         let audioCtx, analyser, source, dataArray, isAudioContextInitialized = false;
-        let userData = { ip: 'SCANNING...', city: 'REDACTED', region: 'REDACTED', isp: 'REDACTED' };
+        
+        // Initial state for IP data
+        let userData = { ip: 'CONNECTION_REFUSED', city: 'REDACTED', region: 'REDACTED', isp: 'REDACTED' };
 
-        // Elements
+        // DOM References
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
         const skipBtn = document.getElementById('skip-btn');
@@ -386,33 +368,110 @@
         const currentTimeDisplay = document.getElementById('current-time');
         const diagLogs = document.getElementById('diag-logs');
         const vuContainer = document.getElementById('vu-meter');
-        const videoOverlay = document.getElementById('video-overlay');
-        const videoPlayer = document.getElementById('video-player');
-        const videoTitle = document.getElementById('video-title');
-        const videoCloseBtn = document.getElementById('video-close-btn');
         const consoleContainer = document.getElementById('console-container');
         const consoleInput = document.getElementById('console-input');
         const consoleOutput = document.getElementById('console-output');
 
         const bootData = [
-            "Initializing BIOS...", "Verifying CPU...", "Memory Test: 16384MB OK",
-            "Establishing GitHub Uplink...", "Fetching Metadata...", "Checksum 0xAF43... PASSED",
-            "SUCCESS: System Boot Sequence Complete."
+            "ESTABLISHING_VIRTUAL_NETWORK_INTERFACE...",
+            "MAC_ADDR: 00:1A:2B:3C:4D:5E [ MAPPED ]",
+            "INITIALIZING_TCP_IP_STACK_V6...",
+            "GATEWAY_HANDSHAKE: 192.168.1.1 [ OK ]",
+            "ESTABLISHING_GITHUB_UPLINK_TLS_1.3...", 
+            "SUCCESS: ARCHIVE_OS_ONLINE"
         ];
 
-        // --- DATA LOGIC ---
+        // System Log Generation Logic
+        const systemMessages = [
+            "PING_LATENCY: 14ms",
+            "SYN_FLOOD_DETECTED: BLOCKED",
+            "UPLINK_STABLE: 10Gbps",
+            "CACHE_PURGED: 12.4MB",
+            "SSH_ATTEMPT: IP_REDACTED [ DENIED ]",
+            "HANDSHAKE_COMPLETE: NODE_04",
+            "MEMORY_CLEANUP_SUCCESSFUL",
+            "SENSORS_CALIBRATED",
+            "PACKET_LOSS: 0.00%",
+            "FILE_SYSTEM: READ_ONLY",
+            "PORT_8080: LISTENING..."
+        ];
 
+        function runSystemLog() {
+            let logStep = 0;
+            setInterval(() => {
+                if (logStep === 0) {
+                    addDiagLine("FACECAM_ON");
+                    logStep++;
+                } else if (logStep === 1) {
+                    addDiagLine("EYE_TRACKING ENABLED");
+                    logStep++;
+                } else {
+                    // Random chance for spooky sequence
+                    if (Math.random() > 0.9) {
+                        addDiagLine("HEARTBEAT_DETECTED", "var(--crimson)");
+                        setTimeout(() => {
+                            addDiagLine("USER_DETECTED BEHIND YOU", "var(--crimson)");
+                        }, 500);
+                    } else {
+                        const msg = systemMessages[Math.floor(Math.random() * systemMessages.length)];
+                        addDiagLine(msg);
+                    }
+                }
+            }, 2000);
+        }
+
+        // --- Glitch Engine ---
+        const glitchChars = "!@#$%^&*()_+{}:<>?|[]-=/";
+        function glitchEffect(element, originalText) {
+            let iterations = 0;
+            const interval = setInterval(() => {
+                element.innerText = originalText.split("").map((char, index) => {
+                    if (index < iterations) return originalText[index];
+                    return glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                }).join("");
+                if (iterations >= originalText.length) {
+                    clearInterval(interval);
+                    element.innerText = originalText;
+                }
+                iterations += 1/3;
+            }, 30);
+        }
+
+        // Helper for matrix-style corruption
+        function getMatrixString(length) {
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += glitchChars.charAt(Math.floor(Math.random() * glitchChars.length));
+            }
+            return result;
+        }
+
+        function runSiteCorruption() {
+            setInterval(() => {
+                if (Math.random() > 0.7) { // 0.7 Threshold for stability
+                    const targets = document.querySelectorAll('.glitch-target');
+                    if (targets.length > 0) {
+                        const target = targets[Math.floor(Math.random() * targets.length)];
+                        glitchEffect(target, target.innerText);
+                    }
+                }
+            }, 500);
+        }
+
+        // --- Data Fetching ---
         async function fetchUserLocation() {
             try {
                 const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
-                userData = {
-                    ip: data.ip || 'UNKNOWN',
-                    city: data.city || 'REDACTED',
-                    region: data.region || 'REDACTED',
-                    isp: data.org || 'REDACTED'
-                };
-            } catch (e) { console.warn("Location check failed."); }
+                if (data && !data.error) {
+                    userData = {
+                        ip: data.ip || 'CONNECTION_REFUSED',
+                        city: data.city || 'REDACTED',
+                        region: data.region || 'REDACTED',
+                        isp: data.org || 'REDACTED'
+                    };
+                }
+            } catch (e) { console.warn("Location lookup blocked."); }
         }
 
         async function initializeData() {
@@ -423,154 +482,81 @@
                 ]);
                 audioTracks = tracksRes;
                 virtualFiles = filesRes;
-
-                if (audioTracks.length > 0) {
-                    currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
-                    loadTrack(currentTrackIndex);
-                }
-                addDiagLine("DATA_MAPS_LOADED");
-                // Special Diagnostic Lines on successful boot
-                setTimeout(() => addDiagLine("FACECAM_ON", "var(--crimson)"), 500);
-                setTimeout(() => addDiagLine("EYE_TRACKING_SYNCED"), 1000);
-                setTimeout(() => addDiagLine("PING_LOCATION"), 1500);
-            } catch (e) {
-                addDiagLine("SYNC_ERROR: RECHECK_DATA_FOLDER", "var(--crimson)");
-            }
+                if (audioTracks.length > 0) loadTrack(Math.floor(Math.random() * audioTracks.length));
+                addDiagLine("NETWORK_BUFFERS_READY");
+            } catch (e) { addDiagLine("SYNC_ERROR: RECHECK_DATA", "var(--crimson)"); }
         }
 
         function loadTrack(index) {
+            currentTrackIndex = index;
             const track = audioTracks[index];
             if (!track) return;
             mainAudio.src = track.url;
             trackName.innerText = track.name.toUpperCase();
         }
 
-        // --- TERMINAL ENGINE ---
-
+        // --- Terminal Functions ---
         function writeToConsole(text, color = "#666") {
             const line = document.createElement('div');
             line.style.color = color;
             line.style.marginBottom = "2px";
-            line.style.whiteSpace = "pre-wrap"; 
             line.innerText = text;
             consoleOutput.appendChild(line);
             consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            return line;
         }
 
         consoleInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                const rawInput = consoleInput.value.trim();
-                const parts = rawInput.toLowerCase().split(' ');
-                const cmd = parts[0];
-                const arg = parts[1];
+                const raw = consoleInput.value.trim();
+                const [cmd, arg] = raw.toLowerCase().split(' ');
                 consoleInput.value = '';
-                writeToConsole(`> ${rawInput.toUpperCase()}`, "#aaa");
+                writeToConsole(`> ${raw.toUpperCase()}`, "#aaa");
 
-                if(cmd === 'help') {
-                    writeToConsole("COMMANDS: LIST, OPEN [FILENAME], WHOAMI, TIMEWARP");
-                } else if(cmd === 'list') {
-                    const keys = Object.keys(virtualFiles);
-                    if (keys.length === 0) {
-                        writeToConsole("NO_FILES_SYNCED_IN_DIRECTORY.", "var(--crimson)");
-                    } else {
-                        keys.forEach(f => writeToConsole(` - ${f}`, "#888"));
-                    }
-                } else if(cmd === 'timewarp') {
-                    openInternalVideo('./log clips/oneyear.mp4', 'TIMEWARP_ACTIVE', true);
-                    writeToConsole("TIME_WARP_PROTOCOL_INITIATED.", "var(--crimson)");
-                } else if(cmd === 'whoami') {
+                if (cmd === 'help') writeToConsole("COMMANDS: LIST, OPEN [FILE], WHOAMI, TIMEWARP");
+                else if (cmd === 'list') Object.keys(virtualFiles).forEach(f => writeToConsole(` - ${f}`));
+                else if (cmd === 'whoami') {
+                    // Constant Glitch Line for identity
+                    const userLine = writeToConsole("USER: ", "var(--crimson)");
+                    const guestSpan = document.createElement('span');
+                    userLine.appendChild(guestSpan);
+                    
+                    // Perpetual glitch effect
+                    setInterval(() => {
+                        guestSpan.innerText = getMatrixString(13);
+                    }, 50);
+
+                    // Rest of the info
                     writeToConsole(`REMOTE_IP: ${userData.ip}`);
-                    writeToConsole(`CITY: ${userData.city.toUpperCase()}`);
-                    writeToConsole(`STATE: ${userData.region.toUpperCase()}`);
-                    writeToConsole(`PROVIDER: ${userData.isp.toUpperCase()}`);
-                } else if(cmd === 'open') {
-                    const file = virtualFiles[arg];
-                    if (file) {
-                        if (file.type === 'video') {
-                            openInternalVideo(file.url, arg);
-                            writeToConsole(`STREAMING: ${arg.toUpperCase()}`, "var(--crimson)");
-                        } else if (file.type === 'external') {
-                            window.open(file.url, '_blank');
-                            writeToConsole(`UPLINK_OPEN: ${arg.toUpperCase()}`, "var(--crimson)");
-                        } else {
-                            writeToConsole(`\n--- ${arg.toUpperCase()} ---\n${file.content}\n`, "var(--crimson)");
-                        }
-                    } else {
-                        writeToConsole(`ERR: '${arg}' NOT FOUND.`);
-                    }
-                } else {
-                    writeToConsole("ERR: UNKNOWN_CMD.");
+                    writeToConsole(`CITY: ${userData.city.toUpperCase()}, ${userData.region.toUpperCase()}`);
+                    writeToConsole(`STATUS: BEING_WATCHED`, "var(--crimson)");
                 }
+                else if (cmd === 'timewarp') {
+                    writeToConsole("ACTIVATE_TIMEWARP", "var(--crimson)");
+                    writeToConsole("SKIPPING 1 YEAR...", "var(--crimson)");
+                    openVideo("log clips/oneyear.mp4", "TIMEWARP", true);
+                }
+                else if (cmd === 'open' && virtualFiles[arg]) {
+                    writeToConsole(`ACCESSING: ${arg.toUpperCase()}`, "var(--crimson)");
+                    if (virtualFiles[arg].type === 'video') openVideo(virtualFiles[arg].url, arg);
+                    else writeToConsole(`\n${virtualFiles[arg].content}\n`);
+                }
+                else writeToConsole("ERR: COMMAND NOT FOUND");
             }
         });
 
-        // --- AUDIO SEEK LOGIC ---
-
-        function seek(e) {
-            if (!mainAudio.duration) return;
-            const rect = progressArea.getBoundingClientRect();
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const pos = (clientX - rect.left) / rect.width;
-            mainAudio.currentTime = Math.max(0, Math.min(1, pos)) * mainAudio.duration;
-        }
-
-        progressArea.addEventListener('mousedown', seek);
-        let isSeeking = false;
-        progressArea.onmousedown = (e) => { isSeeking = true; seek(e); };
-        window.onmousemove = (e) => { if (isSeeking) seek(e); };
-        window.onmouseup = () => { isSeeking = false; };
-
-        // --- VIDEO PLAYER ---
-
-        function openInternalVideo(url, title = "ARCHIVE_FEED", uncloseable = false) {
-            mainAudio.pause();
-            playBtn.innerText = "PLAY";
-            videoTitle.innerText = `STATUS: ${title.toUpperCase()}`;
-            videoPlayer.src = url; 
-            videoOverlay.style.display = 'flex';
-            
-            if (uncloseable) {
-                videoCloseBtn.classList.add('hidden');
-            } else {
-                videoCloseBtn.classList.remove('hidden');
-            }
-            
-            videoPlayer.play();
-        }
-
-        function closeVideoPlayer() {
-            videoPlayer.pause();
-            videoPlayer.src = "";
-            videoOverlay.style.display = 'none';
-        }
-
-        videoPlayer.onended = () => {
-            closeVideoPlayer();
-        };
-
-        // --- MUSIC AUTO-NEXT ---
-
-        mainAudio.onended = () => {
-            currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
-            loadTrack(currentTrackIndex);
-            mainAudio.play();
-        };
-
-        // --- UI & DIAGNOSTICS ---
-
+        // --- Audio Logic ---
         function initAudioContext() {
             if (isAudioContextInitialized) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                source = audioCtx.createMediaElementSource(mainAudio);
-                source.connect(analyser);
-                analyser.connect(audioCtx.destination);
-                analyser.fftSize = 128; 
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-                isAudioContextInitialized = true;
-                updateVUMeter();
-            } catch(e) { console.warn("Audio Context error."); }
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            source = audioCtx.createMediaElementSource(mainAudio);
+            source.connect(analyser);
+            analyser.connect(audioCtx.destination);
+            analyser.fftSize = 128;
+            dataArray = new Uint8Array(analyser.frequencyBinCount);
+            isAudioContextInitialized = true;
+            updateVUMeter();
         }
 
         const bars = Array.from({length: 16}, () => {
@@ -587,61 +573,68 @@
                     const val = dataArray[i * 2] || 0;
                     bar.style.height = Math.max(2, (val/255)*18) + 'px';
                     val > 40 ? bar.classList.add('active') : bar.classList.remove('active');
-                    val > 230 ? bar.classList.add('peak') : bar.classList.remove('peak');
                 });
-            } else {
-                bars.forEach(b => { b.style.height='2px'; b.classList.remove('active', 'peak'); });
             }
             requestAnimationFrame(updateVUMeter);
         }
 
-        playBtn.onclick = async () => { 
+        playBtn.onclick = async () => {
             initAudioContext();
-            if (audioCtx?.state === 'suspended') await audioCtx.resume();
-            if (mainAudio.paused) {
-                mainAudio.play(); playBtn.innerText = "PAUSE";
-            } else {
-                mainAudio.pause(); playBtn.innerText = "PLAY";
-            }
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            mainAudio.paused ? mainAudio.play() : mainAudio.pause();
+            playBtn.innerText = mainAudio.paused ? "PLAY" : "PAUSE";
         };
 
         skipBtn.onclick = () => {
-            currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
-            loadTrack(currentTrackIndex);
+            loadTrack((currentTrackIndex + 1) % audioTracks.length);
             mainAudio.play();
             playBtn.innerText = "PAUSE";
         };
 
+        // --- Video Player ---
+        function openVideo(url, title, forced = false) {
+            document.getElementById('video-title').innerText = `STREAM: ${title.toUpperCase()}`;
+            document.getElementById('video-player').src = url;
+            document.getElementById('video-overlay').style.display = 'flex';
+            
+            // Handle forced state (no close button)
+            const closeBtn = document.getElementById('video-close-btn');
+            if (forced) {
+                closeBtn.style.display = 'none';
+            } else {
+                closeBtn.style.display = 'inline';
+            }
+
+            document.getElementById('video-player').play();
+            mainAudio.pause();
+            playBtn.innerText = "PLAY";
+        }
+
+        function closeVideoPlayer() {
+            document.getElementById('video-player').pause();
+            document.getElementById('video-overlay').style.display = 'none';
+        }
+
+        // --- Diagnostics & Boot ---
         function addDiagLine(text, color = null) {
             const log = document.createElement('div');
             log.innerText = `> ${text}`;
             if (color) log.style.color = color;
             diagLogs.prepend(log);
-            if (diagLogs.children.length > 15) diagLogs.removeChild(diagLogs.lastChild);
+            if (diagLogs.children.length > 10) diagLogs.removeChild(diagLogs.lastChild);
         }
 
-        const spookyLines = [
-            () => addDiagLine("YOURSCREEN_IS_DIRTY"),
-            () => {
-                addDiagLine("HEARTBEAT DETECTED IN DIRECTORY");
-                setTimeout(() => addDiagLine("UNKNOWN_USER DETECTED", "var(--crimson)"), 800);
-            },
-            () => addDiagLine("UPLINK_UNSTABLE"),
-            () => addDiagLine("TRACING_INBOUND_REQUEST"),
-            () => addDiagLine("FILE_SYSTEM_BREACH_DETECTED", "var(--crimson)")
-        ];
-
-        function runPostSequence() {
+        function runBoot() {
             const screen = document.getElementById('boot-screen');
-            let count = 0;
-            const interval = setInterval(() => {
-                if (count < bootData.length) {
+            let i = 0;
+            const timer = setInterval(() => {
+                if (i < bootData.length) {
                     const line = document.createElement('div');
                     line.className = 'post-line';
-                    line.innerText = `[ OK ] ${bootData[count++]}`;
+                    line.innerText = `[ OK ] ${bootData[i++]}`;
                     screen.appendChild(line);
                 } else {
-                    clearInterval(interval);
+                    clearInterval(timer);
                     setTimeout(() => {
                         screen.style.opacity = '0';
                         setTimeout(() => {
@@ -652,15 +645,34 @@
                             });
                             document.getElementById('diag-widget').style.opacity = '1';
                             document.getElementById('audio-widget').style.opacity = '1';
+                            runSiteCorruption();
+                            runSystemLog();
                         }, 400);
                     }, 300);
                 }
-            }, 50);
+            }, 80);
         }
 
-        document.getElementById('terminal-trigger').onclick = (e) => { e.stopPropagation(); toggleTerminal(); };
+        function toggleTerminal() {
+            const visible = consoleContainer.style.display === 'flex';
+            consoleContainer.style.display = visible ? 'none' : 'flex';
+            if (!visible) setTimeout(() => consoleInput.focus(), 10);
+        }
+
         window.addEventListener('keydown', (e) => { if (e.key === '~' || e.key === '`') { e.preventDefault(); toggleTerminal(); } });
-        
+        document.getElementById('terminal-trigger').onclick = toggleTerminal;
+
+        window.onload = () => {
+            fetchUserLocation();
+            initializeData();
+            runBoot();
+            setInterval(() => {
+                const elapsed = Math.floor((Date.now() - siteBootTime) / 1000);
+                document.getElementById('uptime').innerText = `UP: ${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
+                document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 5 + 1)}%`;
+            }, 1000);
+        };
+
         mainAudio.ontimeupdate = () => {
             if (!mainAudio.duration) return;
             progressBar.style.width = `${(mainAudio.currentTime / mainAudio.duration) * 100}%`;
@@ -668,33 +680,6 @@
             const s = Math.floor(mainAudio.currentTime % 60);
             currentTimeDisplay.innerText = `${m}:${s.toString().padStart(2, '0')}`;
         };
-
-        window.onload = () => {
-            fetchUserLocation();
-            initializeData();
-            runPostSequence();
-            
-            // Increased prompt frequency (increased chance or shorter interval)
-            setInterval(() => {
-                if (Math.random() > 0.70) { // Increased from 0.85
-                    const event = spookyLines[Math.floor(Math.random() * spookyLines.length)];
-                    event();
-                }
-            }, 10000); // Shortened from 15000
-
-            // Uptime and CPU simulation
-            setInterval(() => {
-                const elapsed = Math.floor((Date.now() - siteBootTime) / 1000);
-                document.getElementById('uptime').innerText = `UP: ${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
-                document.getElementById('cpu-load').innerText = `${Math.floor(Math.random() * 8 + 2).toString().padStart(2, '0')}%`;
-            }, 1000);
-        };
-
-        function toggleTerminal() {
-            const isVisible = consoleContainer.style.display === 'flex';
-            consoleContainer.style.display = isVisible ? 'none' : 'flex';
-            if (!isVisible) setTimeout(() => consoleInput.focus(), 10);
-        }
     </script>
 </body>
 </html>
