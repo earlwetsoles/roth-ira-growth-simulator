@@ -334,6 +334,15 @@
             "MEMORY_PAGE_FLUSHED"
         ];
 
+        // Shuffle algorithm (Fisher-Yates)
+        function shufflePlaylist(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[array[i]]];
+            }
+            return array;
+        }
+
         async function initializeData() {
             try {
                 const [tRes, fRes] = await Promise.all([
@@ -342,7 +351,12 @@
                 ]);
                 audioTracks = tRes;
                 virtualFiles = fRes;
-                if (audioTracks.length > 0) loadTrack(0);
+                
+                if (audioTracks.length > 0) {
+                    // Random start on initial load
+                    currentTrackIndex = Math.floor(Math.random() * audioTracks.length);
+                    loadTrack(currentTrackIndex);
+                }
                 addDiagLine("DATA_SYNC_SUCCESS", "good");
             } catch (e) { 
                 addDiagLine("DATA_SYNC_ERROR", "bad");
@@ -383,10 +397,19 @@
         };
 
         skipBtn.onclick = () => {
-            currentTrackIndex = (currentTrackIndex + 1) % audioTracks.length;
-            loadTrack(currentTrackIndex);
-            mainAudio.play().catch(() => {});
-            playBtn.innerText = "PAUSE";
+            if (audioTracks.length > 1) {
+                // To achieve a "true" random shuffle on skip, we pick any index other than current
+                let nextIndex;
+                do {
+                    nextIndex = Math.floor(Math.random() * audioTracks.length);
+                } while (nextIndex === currentTrackIndex);
+                
+                currentTrackIndex = nextIndex;
+                loadTrack(currentTrackIndex);
+                mainAudio.play().catch(() => {});
+                playBtn.innerText = "PAUSE";
+                addDiagLine("SHUFFLE_QUEUE_RANDOMIZED");
+            }
         };
 
         mainAudio.ontimeupdate = () => {
@@ -480,11 +503,6 @@
             videoOverlay.style.display = 'none';
         }
 
-        /**
-         * addDiagLine - Future-proofed for color coding
-         * @param {string} text - Message to display
-         * @param {string} type - 'normal', 'good', or 'bad'
-         */
         function addDiagLine(text, type = 'normal') {
             const log = document.createElement('div');
             log.className = `diag-entry type-${type}`;
@@ -494,7 +512,6 @@
         }
 
         function startDiagTinker() {
-            // Initial sequence
             setTimeout(() => addDiagLine("FACECAM_ON"), 500);
             setTimeout(() => addDiagLine("EYE_TRACKING_ENABLED"), 1200);
             
@@ -507,7 +524,6 @@
                 addDiagLine("HEARTBEAT_DETECTED");
             }, 4500);
 
-            // Repeating interval for background logs
             setInterval(() => {
                 const now = Date.now();
                 if (Math.random() < 0.1 && (now - lastSpookyMessageTime > 60000)) {
