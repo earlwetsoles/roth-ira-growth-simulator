@@ -13,6 +13,7 @@
             --glitch-red: #ff3e3e;
             --terminal-gray: #666;
             --terminal-off-white: #eee;
+            --terminal-green: #00ff41;
         }
 
         body { 
@@ -37,7 +38,6 @@
             pointer-events: none;
         }
 
-        /* Chromatic Aberration Hover Effect */
         .glitch-hover-effect {
             display: inline-block;
             transition: all 0.2s ease;
@@ -168,6 +168,18 @@
             border-bottom: 1px solid #222;
             margin-bottom: 4px;
         }
+
+        /* Diagnostic Log Fix */
+        .diag-entry {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
+            width: 100%;
+        }
+        .diag-entry.type-normal { color: var(--terminal-gray); }
+        .diag-entry.type-good { color: var(--terminal-green); }
+        .diag-entry.type-bad { color: var(--crimson); }
     </style>
 </head>
 <body class="p-8 md:p-24 pb-48 md:pb-24">
@@ -314,7 +326,7 @@
             "PACKET_RECEIVED_FROM_GATEWAY_10.0.0.1",
             "BACKGROUND_CACHE_PURGE_SUCCESS",
             "TEMP_CORE_0: 42°C",
-            "HEARTBEAT_PULSE_SYNC",
+            "HEARTBEAT_PULSE_SYNCING",
             "ENCRYPTING_OUTBOUND_BUFFER",
             "PING_LATENCY: 14ms",
             "UPDATING_VIRTUAL_REGISTRY",
@@ -331,9 +343,9 @@
                 audioTracks = tRes;
                 virtualFiles = fRes;
                 if (audioTracks.length > 0) loadTrack(0);
-                addDiagLine("DATA_SYNC_SUCCESS");
+                addDiagLine("DATA_SYNC_SUCCESS", "good");
             } catch (e) { 
-                addDiagLine("DATA_SYNC_ERROR", "var(--crimson)");
+                addDiagLine("DATA_SYNC_ERROR", "bad");
             }
         }
 
@@ -361,7 +373,7 @@
             }
             if (mainAudio.paused) {
                 mainAudio.play().catch(err => {
-                    addDiagLine("PLAY_ERROR: " + err.name, "var(--crimson)");
+                    addDiagLine("PLAY_ERROR: " + err.name, "bad");
                 });
                 playBtn.innerText = "PAUSE";
             } else {
@@ -453,7 +465,7 @@
                 } else if (cmd === 'timewarp') {
                    const warpSeconds = parseInt(arg) || 0;
                    warpOffset += warpSeconds;
-                   writeToConsole(`TIME_WARP_SUCCESS: OFFSET_${warpOffset}S`, "var(--crimson)");
+                   writeToConsole(`TIME_WARP_SUCCESS: OFFSET_${warpOffset}S`, "bad");
                 } else if (cmd === 'help') {
                     writeToConsole("LIST, OPEN [FILE], TIMEWARP");
                 } else if (cmd !== '') {
@@ -468,24 +480,44 @@
             videoOverlay.style.display = 'none';
         }
 
-        function addDiagLine(text, color = null) {
+        /**
+         * addDiagLine - Future-proofed for color coding
+         * @param {string} text - Message to display
+         * @param {string} type - 'normal', 'good', or 'bad'
+         */
+        function addDiagLine(text, type = 'normal') {
             const log = document.createElement('div');
+            log.className = `diag-entry type-${type}`;
             log.innerText = `> ${text}`;
-            if (color) log.style.color = color;
             diagLogs.prepend(log);
+            if (diagLogs.children.length > 20) diagLogs.lastChild.remove();
         }
 
         function startDiagTinker() {
+            // Initial sequence
+            setTimeout(() => addDiagLine("FACECAM_ON"), 500);
+            setTimeout(() => addDiagLine("EYE_TRACKING_ENABLED"), 1200);
+            
+            setTimeout(() => {
+                addDiagLine("HEARTBEAT_PULSE_SYNCING");
+                addDiagLine("HEARTBEAT_PULSE_SYNCING");
+            }, 3000);
+
+            setTimeout(() => {
+                addDiagLine("HEARTBEAT_DETECTED");
+            }, 4500);
+
+            // Repeating interval for background logs
             setInterval(() => {
                 const now = Date.now();
                 if (Math.random() < 0.1 && (now - lastSpookyMessageTime > 60000)) {
-                    addDiagLine("HEARTBEAT_DETECTED", "var(--crimson)");
+                    addDiagLine("HEARTBEAT_DETECTED");
                     lastSpookyMessageTime = now;
                 } else {
                     const msg = fakeStatuses[Math.floor(Math.random() * fakeStatuses.length)];
                     addDiagLine(msg);
                 }
-            }, 2000);
+            }, 2500);
         }
 
         function runBoot() {
