@@ -164,7 +164,8 @@
   },
   {
     "name": "HAPPYNESS (SKIT)",
-    "url": "audio/04. Happyness (Skit).mp3"
+    "url": "audio/04. Happyness (Skit).mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b273d773eeea1eba4182bd18c4ab"
   },
   {
     "name": "FUBAR",
@@ -173,39 +174,48 @@
   },
   {
     "name": "NIGGAS SOOOOO GOOD",
-    "url": "audio/05. Niggas Sooooo Good.mp3"
+    "url": "audio/05. Niggas Sooooo Good.mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b273d773eeea1eba4182bd18c4ab"
   },
   {
     "name": "SHERWIN WILLIAMS",
-    "url": "audio/Mach-Hommy - DUMPMEISTER - 05 Sherwin Williams feat. Koncept Jack$on (beats by NAVY BLUE).mp3"
+    "url": "audio/Mach-Hommy - DUMPMEISTER - 05 Sherwin Williams feat. Koncept Jack$on (beats by NAVY BLUE).mp3",
+    "artwork": "https://images.squarespace-cdn.com/content/v1/59e108f41f318d545aa2ed00/1523228595270-9BHSSE0LO12CD8HICHUI/Dumpmeister.jpg?format=2500w"
   },
   {
     "name": "FREESTYLE IN FERRAGAMO",
-    "url": "audio/05 - Freestyle in Ferragamo feat. Chase Deniro [Prod. CamoflaugeMonk].mp3"
+    "url": "audio/05 - Freestyle in Ferragamo feat. Chase Deniro [Prod. CamoflaugeMonk].mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b273d66a57334ab624da6c17b76b"
   },
   {
     "name": "OIL BASE",
-    "url": "audio/11 - Oil Base [Prod. CamoflaugeMonk].mp3"
+    "url": "audio/11 - Oil Base [Prod. CamoflaugeMonk].mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b273d66a57334ab624da6c17b76b"
   },
   {
     "name": "OD",
-    "url": "audio/4 - OD.mp3"
+    "url": "audio/4 - OD.mp3",
+    "artwork": "https://i1.sndcdn.com/artworks-000627226486-g2dqbw-t500x500.jpg"
   },
   {
     "name": "THE MAN",
-    "url": "audio/15 - The Man.mp3"
+    "url": "audio/15 - The Man.mp3",
+    "artwork": "https://i1.sndcdn.com/artworks-EWI0Je8F40gZ-0-t500x500.jpg"
   },
   {
     "name": "NIAGARA CAFE",
-    "url": "audio/04. Niagara Cafe.mp3"
+    "url": "audio/04. Niagara Cafe.mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b2736a27bb55d2a31e56672eafe9"
   },
   {
     "name": "BUBBA CHUCK",
-    "url": "audio/10. Bubba Chuck feat. Stove God Cooks.mp3"
+    "url": "audio/10. Bubba Chuck feat. Stove God Cooks.mp3",
+    "artwork": "https://images.genius.com/f0b5cb8157b06d2d579432a790484b7b.1000x1000x1.png"
   },
   {
     "name": "PETE SAKE",
-    "url": "audio/8 - Pete Sake.mp3"
+    "url": "audio/8 - Pete Sake.mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b27386be1201ec21c66f40a94e91"
   },
   {
     "name": "FERRAGAMO FUNERAL",
@@ -219,34 +229,42 @@
   },
   {
     "name": "OSCAR DE LA RENTA",
-    "url": "audio/02. Oscar De La Renta.mp3"
+    "url": "audio/02. Oscar De La Renta.mp3",
+    "artwork": "https://images.genius.com/4c2c0d7cfead33ab7e313c2170dbea40.700x700x1.jpg"
   },
   {
     "name": "BURT & STATE",
-    "url": "audio/7 - Burt & State.mp3"
+    "url": "audio/7 - Burt & State.mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b2738a2849c3dec9a126acca4b06"
   },
   {
     "name": "SURVIVAL TACTICS",
-    "url": "audio/04. Survival Tactics feat. Capital STEEZ [Prod. Vin Skully].mp3"
+    "url": "audio/04. Survival Tactics feat. Capital STEEZ [Prod. Vin Skully].mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b273fcd3724fba954e6104e4530d"
   },
   {
     "name": "PRONTO",
-    "url": "audio/11. Pronto.mp3"
+    "url": "audio/11. Pronto.mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b2738c1bb31c73c0a479830e78fd"
   },
   {
     "name": "PETER LUGER",
-    "url": "audio/03. Peter Luger.mp3"
+    "url": "audio/03. Peter Luger.mp3",
+    "artwork": "https://f4.bcbits.com/img/a0410702129_10.jpg"
   },
     {
     "name": "RIOT",
-    "url": "audio/RIOT - HUGH MASEKELA.mp3"
+    "url": "audio/RIOT - HUGH MASEKELA.mp3",
+      "artwork": "https://images.genius.com/e85e00f81ca0da972f29bb561fb2b7bc.600x600x1.jpg"
   },
     {
     "name": "LONG LIVE JULIO",
-    "url": "audio/06 - Long Live Julio.mp3"
+    "url": "audio/06 - Long Live Julio.mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b27336f60193ba7de9568775b2e1"
   },
   {
     "name": "SEACOAST",
-    "url": "audio/11. Archie Whitewater - Seacoast.mp3"
+    "url": "audio/11. Archie Whitewater - Seacoast.mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d0000b273c0a2ab23c9647387fb4da61a"
   }
 ]
