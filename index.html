@@ -304,7 +304,6 @@
         let siteBootTime = Date.now();
         let warpOffset = 0; 
         let audioCtx, analyser, source, dataArray, isAudioCtxInit = false;
-        let lastSpookyMessageTime = 0;
 
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
@@ -376,7 +375,6 @@
             setTimeout(runGlitchEffect, nextTick); 
         } 
 
-        // Initialized after DOM Content Loaded
         window.addEventListener('DOMContentLoaded', () => {
             const lines = document.querySelectorAll('.typewriter-line');
             lines.forEach(line => {
@@ -499,6 +497,7 @@
                 const arg = parts.slice(1).join(' ');
                 consoleInput.value = '';
                 writeToConsole(`> ${raw.toUpperCase()}`, "#aaa");
+                
                 if (cmd === 'list') {
                     const files = Object.keys(virtualFiles);
                     files.length === 0 ? writeToConsole("NO FILES DETECTED") : files.forEach(f => writeToConsole(`- ${f}`));
@@ -516,6 +515,14 @@
                             window.open(fileObj.url, '_blank');
                         }
                     } else writeToConsole("ERR: FILE_NOT_FOUND");
+                } else if (cmd === 'timewarp') {
+                    videoTitle.innerText = "EVENT_LOG: TIMEWARP";
+                    videoPlayer.src = "log clips/oneyear.mp4";
+                    videoOverlay.style.display = 'flex';
+                    videoPlayer.play();
+                    mainAudio.pause();
+                    playBtn.innerText = "PLAY";
+                    writeToConsole("INITIATING_TEMPORAL_SHIFT...");
                 } else if (cmd === 'help') {
                     writeToConsole("LIST, OPEN [FILE], TIMEWARP");
                 }
