@@ -136,7 +136,8 @@
   },
   {
     "name": "MASSACURES",
-    "url": "audio/06. Massacures.mp3"
+    "url": "audio/06. Massacures.mp3",
+    "artwork": "https://f4.bcbits.com/img/a3260392053_10.jpg"
   },
   {
     "name": "KNIFE CONFRONTATION",
@@ -145,7 +146,8 @@
   },
   {
     "name": "$111.11",
-    "url": "audio/02. $111.11 feat. Mach-Hommy [Prod. Camoflauge Monk].mp3"
+    "url": "audio/02. $111.11 feat. Mach-Hommy [Prod. Camoflauge Monk].mp3",
+    "artwork": "https://i1.sndcdn.com/artworks-AbJZySoLiTUG2hSj-T5zzdg-t500x500.jpg"
   },
   {
     "name": "NO MORE TIME",
@@ -235,7 +237,7 @@
   {
     "name": "BURT & STATE",
     "url": "audio/7 - Burt & State.mp3",
-    "artwork": "https://i.scdn.co/image/ab67616d0000b2738a2849c3dec9a126acca4b06"
+    "artwork": "https://i.scdn.co/image/ab67616d0000b273dd9b79f9268fd32ce6f0dce9"
   },
   {
     "name": "SURVIVAL TACTICS",
