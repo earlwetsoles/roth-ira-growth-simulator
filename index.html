@@ -25,7 +25,6 @@
             padding: 0;
         }
 
-        /* CRT Overlay Effect */
         body::before {
             content: " ";
             display: block;
@@ -320,17 +319,27 @@
     </main>
 
     <script>
+        // CONFIG PATHS
         const TRACKS_JSON_URL = "data/tracks.json";
         const FILES_JSON_URL = "data/terminal_files.json";
+        const BOOT_JSON_URL = "data/boot_sequence.json";
+        const STATUS_JSON_URL = "data/system_status.json";
+        const COMMANDS_JSON_URL = "data/commands.json";
 
+        // APP STATE
         let audioTracks = [];
-        let playQueue = []; // Tiny memory list: just integers
+        let playQueue = [];
         let queueCursor = 0;
         let siteBootTime = Date.now();
         let warpOffset = 0;
         let audioCtx, analyser, source, dataArray, isAudioCtxInit = false;
         let artworkFirstShow = true;
+        
+        // DYNAMIC DATA
         let virtualFiles = {};
+        let bootSequenceData = [];
+        let systemStatusMessages = [];
+        let commandRegistry = {};
 
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
@@ -347,36 +356,9 @@
         const videoOverlay = document.getElementById('video-overlay');
         const videoPlayer = document.getElementById('video-player');
         const videoTitle = document.getElementById('video-title');
-        
         const artImg = document.getElementById('cover-art-img');
         const artPlaceholder = document.getElementById('art-placeholder');
         const artWidget = document.getElementById('art-widget');
-
-        const bootData = [
-            "INITIALIZING_KERNEL_0.9.4... [OK]",
-            "CHECKING_HARDWARE_INTEGRITY... PASS",
-            "DETECTING_NETWORK_INTERFACE... [eth0]",
-            "MAC_ADDRESS: 00:1A:2B:3C:4D:5E",
-            "MOUNTING_LOCAL_STORAGE... [OK]",
-            "VOLUME_ID: ARCHIVE_ROOT_001",
-            "ALLOCATING_BUFFER_AT_OFFSET_0XFFFFF80000000000...",
-            "BUFFER_VERIFIED_CHECK_SUM: 0xDEADBEEF",
-            "STARTING_SECURITY_DAEMON... [OK]",
-            "GENERATING_ENTROPY... [DONE]",
-            "SYNCING_LOCAL_FILESYSTEM...",
-            "LOAD_MODULE: SOUND_DRIVER_X64",
-            "SUCCESS: ARCHIVE_OS_ONLINE"
-        ];
-
-        const fakeStatuses = [
-            "PACKET_RECEIVED_10.0.0.1",
-            "TEMP_CORE_0: 42°C",
-            "HEARTBEAT_PULSE_SYNCING",
-            "PING_LATENCY: 14ms",
-            "MEMORY_PAGE_FLUSHED",
-            "HANDSHAKE_TCP_ESTABLISHED",
-            "NODE_01_HEALTH_OK"
-        ];
 
         const GLITCH_CONFIG = { className: '.glitch-target', chars: '!@#$%^&*()_+[]{}<>?/', frames: 10, frameSpeed: 60, intervalMin: 500, intervalMax: 3000 }; 
 
@@ -402,9 +384,6 @@
             setTimeout(runGlitchEffect, 1000);
         }
 
-        /**
-         * Low-compute shuffle: Create a lightweight index-only queue.
-         */
         function generateQueue() {
             playQueue = Array.from({length: audioTracks.length}, (_, i) => i);
             for (let i = playQueue.length - 1; i > 0; i--) {
@@ -417,20 +396,31 @@
 
         async function initializeData() {
             try {
-                const [tRes, fRes] = await Promise.all([
+                const [tRes, fRes, bRes, sRes, cRes] = await Promise.all([
                     fetch(TRACKS_JSON_URL).then(r => r.json()).catch(() => []),
-                    fetch(FILES_JSON_URL).then(r => r.json()).catch(() => ({}))
+                    fetch(FILES_JSON_URL).then(r => r.json()).catch(() => ({})),
+                    fetch(BOOT_JSON_URL).then(r => r.json()).catch(() => ["BOOT_ERR: FALLBACK_LOADED"]),
+                    fetch(STATUS_JSON_URL).then(r => r.json()).catch(() => ["SYS_IDLE"]),
+                    fetch(COMMANDS_JSON_URL).then(r => r.json()).catch(() => ({}))
                 ]);
+                
                 audioTracks = tRes;
                 virtualFiles = fRes;
+                bootSequenceData = bRes;
+                systemStatusMessages = sRes;
+                commandRegistry = cRes;
                 
                 if (audioTracks.length > 0) {
                     generateQueue();
                     loadTrack(playQueue[queueCursor]);
                 }
                 addDiagLine("DATA_SYNC_SUCCESS", "good");
+                
+                // Start boot screen after data is ready
+                runBoot();
             } catch (e) { 
                 addDiagLine("DATA_SYNC_ERROR", "bad");
+                runBoot(); // Attempt boot anyway
             }
         }
 
@@ -438,7 +428,7 @@
             const track = audioTracks[index];
             if (!track) return;
             trackNameDisplay.innerText = track.name.toUpperCase();
-            mainAudio.src = track.url; // Load ONLY the current song
+            mainAudio.src = track.url;
             if (track.artwork && track.artwork.trim() !== "") {
                 artImg.src = track.artwork;
                 artImg.style.display = "block";
@@ -483,9 +473,7 @@
         skipBtn.onclick = () => {
             if (audioTracks.length > 0) {
                 queueCursor++;
-                if (queueCursor >= playQueue.length) {
-                    generateQueue(); // Re-shuffle once list finished
-                }
+                if (queueCursor >= playQueue.length) generateQueue();
                 loadTrack(playQueue[queueCursor]);
                 mainAudio.play().catch(() => {});
                 playBtn.innerText = "PAUSE";
@@ -543,32 +531,49 @@
                 consoleInput.value = '';
                 writeToConsole(`> ${raw.toUpperCase()}`, "#aaa");
                 
-                if (cmd === 'list') {
-                    Object.keys(virtualFiles).forEach(f => writeToConsole(`- ${f}`));
-                } else if (cmd === 'open') {
-                    const fileObj = virtualFiles[arg] || virtualFiles[arg.toLowerCase()];
-                    if (fileObj) {
-                        if (fileObj.type === 'video') {
-                            videoTitle.innerText = `LOG_STREAM: ${arg.toUpperCase()}`;
-                            videoPlayer.src = fileObj.url;
-                            videoOverlay.style.display = 'flex';
-                            videoPlayer.play();
-                            mainAudio.pause();
-                            playBtn.innerText = "PLAY";
-                        } else if (fileObj.type === 'external') {
-                            window.open(fileObj.url, '_blank');
+                // Check if command exists in JSON registry
+                if (!commandRegistry[cmd]) {
+                    writeToConsole(`ERR: COMMAND_${cmd.toUpperCase()}_NOT_RECOGNIZED`);
+                    return;
+                }
+
+                // Core command logic
+                switch(cmd) {
+                    case 'list':
+                        Object.keys(virtualFiles).forEach(f => writeToConsole(`- ${f}`));
+                        break;
+                    case 'open':
+                        const fileObj = virtualFiles[arg] || virtualFiles[arg.toLowerCase()];
+                        if (fileObj) {
+                            if (fileObj.type === 'video') {
+                                videoTitle.innerText = `LOG_STREAM: ${arg.toUpperCase()}`;
+                                videoPlayer.src = fileObj.url;
+                                videoOverlay.style.display = 'flex';
+                                videoPlayer.play();
+                                mainAudio.pause();
+                                playBtn.innerText = "PLAY";
+                            } else if (fileObj.type === 'external') {
+                                window.open(fileObj.url, '_blank');
+                            }
+                        } else writeToConsole("ERR: FILE_NOT_FOUND");
+                        break;
+                    case 'timewarp':
+                        const offset = parseInt(arg);
+                        if (!isNaN(offset)) {
+                            warpOffset += offset;
+                            writeToConsole(`TEMPORAL SHIFT: ${offset}s APPLIED`);
+                        } else {
+                            writeToConsole(`USAGE: ${commandRegistry[cmd].usage}`);
                         }
-                    } else writeToConsole("ERR: FILE_NOT_FOUND");
-                } else if (cmd === 'timewarp') {
-                    const offset = parseInt(arg);
-                    if (!isNaN(offset)) {
-                        warpOffset += offset;
-                        writeToConsole(`TEMPORAL SHIFT: ${offset}s APPLIED`);
-                    } else {
-                        writeToConsole("USAGE: TIMEWARP [SECONDS]");
-                    }
-                } else if (cmd === 'help') {
-                    writeToConsole("LIST, OPEN [FILE], TIMEWARP [S]");
+                        break;
+                    case 'clear':
+                        consoleOutput.innerHTML = '';
+                        break;
+                    case 'help':
+                        Object.entries(commandRegistry).forEach(([name, meta]) => {
+                            writeToConsole(`${name.toUpperCase()}: ${meta.description}`);
+                        });
+                        break;
                 }
             }
         });
@@ -591,9 +596,9 @@
             const screen = document.getElementById('boot-screen');
             let i = 0;
             const timer = setInterval(() => {
-                if (i < bootData.length) {
+                if (i < bootSequenceData.length) {
                     const line = document.createElement('div');
-                    line.innerText = `[ OK ] ${bootData[i++]}`;
+                    line.innerText = `[ OK ] ${bootSequenceData[i++]}`;
                     screen.appendChild(line);
                     screen.scrollTop = screen.scrollHeight;
                 } else {
@@ -604,7 +609,12 @@
                         document.getElementById('diag-widget').style.opacity = '1';
                         document.getElementById('audio-widget').style.opacity = '1';
                         initAppAnimations();
-                        setInterval(() => { addDiagLine(fakeStatuses[Math.floor(Math.random() * fakeStatuses.length)]); }, 3000);
+                        // Start status loop
+                        setInterval(() => { 
+                            if(systemStatusMessages.length) {
+                                addDiagLine(systemStatusMessages[Math.floor(Math.random() * systemStatusMessages.length)]); 
+                            }
+                        }, 3000);
                     }, 500);
                 }
             }, 50);
@@ -621,7 +631,6 @@
 
         window.onload = () => {
             initializeData();
-            runBoot();
             setInterval(() => {
                 const elapsed = Math.floor((Date.now() - siteBootTime) / 1000) + warpOffset;
                 document.getElementById('uptime').innerText = `UP: ${String(Math.floor(elapsed / 3600)).padStart(2, '0')}:${String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
