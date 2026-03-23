@@ -100,7 +100,6 @@
             .widget-box { width: 240px; right: 2rem; }
             .diag-box { top: 2rem; }
             .audio-box { top: 18rem; }
-            /* Adjusted for a tight 8px (0.5rem) gap below the audio box */
             .art-box { top: 27.5rem; } 
         }
 
@@ -110,6 +109,9 @@
             .audio-box { right: 1rem; top: 1rem; height: 130px; }
             .art-box { right: 1rem; top: 10rem; }
         }
+
+        /* Initial state for metadata is hidden */
+        #art-widget { display: none; }
 
         .widget-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px solid #1a1a1a; padding-bottom: 0.25rem; }
         .widget-title { color: var(--crimson); font-weight: bold; }
@@ -330,6 +332,7 @@
         let currentTrackIndex = 0;
         let siteBootTime = Date.now();
         let audioCtx, analyser, source, dataArray, isAudioCtxInit = false;
+        let artworkFirstShow = true;
 
         const mainAudio = document.getElementById('main-audio');
         const playBtn = document.getElementById('play-btn');
@@ -349,13 +352,29 @@
         
         const artImg = document.getElementById('cover-art-img');
         const artPlaceholder = document.getElementById('art-placeholder');
+        const artWidget = document.getElementById('art-widget');
 
         const bootData = [
             "INITIALIZING_KERNEL_0.9.4... [OK]",
+            "CHECKING_HARDWARE_INTEGRITY... PASS",
+            "DETECTING_NETWORK_INTERFACE... [eth0]",
+            "MAC_ADDRESS: 00:1A:2B:3C:4D:5E",
+            "IP_V4_STATIC: 192.168.1.104",
+            "DHCP_HANDSHAKE_STARTING...",
+            "GATEWAY_FOUND: 192.168.1.1",
+            "DNS_RESOLVER_PRIORITY: 8.8.8.8",
             "MOUNTING_LOCAL_STORAGE... [OK]",
+            "VOLUME_ID: ARCHIVE_ROOT_001",
+            "MNT_POINT: /dev/sda1 -> /sys/root",
             "ALLOCATING_BUFFER_AT_OFFSET_0XFFFFF80000000000...",
+            "BUFFER_VERIFIED_CHECK_SUM: 0xDEADBEEF",
+            "STARTING_SECURITY_DAEMON... [OK]",
+            "SSH_KEY_FINGERPRINT: SHA256:4K8L9P2M0Q6...",
+            "GENERATING_ENTROPY... [DONE]",
             "KERNEL_PANIC_PREVENTION_ACTIVE",
             "SYNCING_LOCAL_FILESYSTEM...",
+            "LOAD_MODULE: SOUND_DRIVER_X64",
+            "LOAD_MODULE: GLITCH_RENDER_V2",
             "SUCCESS: ARCHIVE_OS_ONLINE"
         ];
 
@@ -364,7 +383,9 @@
             "TEMP_CORE_0: 42°C",
             "HEARTBEAT_PULSE_SYNCING",
             "PING_LATENCY: 14ms",
-            "MEMORY_PAGE_FLUSHED"
+            "MEMORY_PAGE_FLUSHED",
+            "HANDSHAKE_TCP_ESTABLISHED",
+            "NODE_01_HEALTH_OK"
         ];
 
         const GLITCH_CONFIG = { className: '.glitch-target', chars: '!@#$%^&*()_+[]{}<>?/', frames: 10, frameSpeed: 60, intervalMin: 500, intervalMax: 3000 }; 
@@ -415,7 +436,6 @@
             trackNameDisplay.innerText = track.name.toUpperCase();
             mainAudio.src = track.url;
             
-            // This logic updates the art widget image or shows the placeholder
             if (track.artwork && track.artwork.trim() !== "") {
                 artImg.src = track.artwork;
                 artImg.style.display = "block";
@@ -429,6 +449,14 @@
         }
 
         playBtn.onclick = async () => {
+            // First time play button is hit, show the artwork widget
+            if (artworkFirstShow) {
+                artWidget.style.display = "block";
+                setTimeout(() => { artWidget.style.opacity = "1"; }, 50);
+                artworkFirstShow = false;
+                addDiagLine("METADATA_STREAM_VISIBLE");
+            }
+
             if (!isAudioCtxInit) {
                 try {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -525,14 +553,6 @@
                             window.open(fileObj.url, '_blank');
                         }
                     } else writeToConsole("ERR: FILE_NOT_FOUND");
-                } else if (cmd === 'timewarp') {
-                    videoTitle.innerText = "EVENT_LOG: TIMEWARP";
-                    videoPlayer.src = "log clips/oneyear.mp4";
-                    videoOverlay.style.display = 'flex';
-                    videoPlayer.play();
-                    mainAudio.pause();
-                    playBtn.innerText = "PLAY";
-                    writeToConsole("INITIATING_TEMPORAL_SHIFT...");
                 } else if (cmd === 'help') {
                     writeToConsole("LIST, OPEN [FILE], TIMEWARP");
                 }
@@ -561,6 +581,7 @@
                     const line = document.createElement('div');
                     line.innerText = `[ OK ] ${bootData[i++]}`;
                     screen.appendChild(line);
+                    screen.scrollTop = screen.scrollHeight;
                 } else {
                     clearInterval(timer);
                     setTimeout(() => {
@@ -568,11 +589,11 @@
                         document.getElementById('app-content').style.opacity = '1';
                         document.getElementById('diag-widget').style.opacity = '1';
                         document.getElementById('audio-widget').style.opacity = '1';
-                        document.getElementById('art-widget').style.opacity = '1';
+                        // Art widget remains display: none until interaction
                         setInterval(() => { addDiagLine(fakeStatuses[Math.floor(Math.random() * fakeStatuses.length)]); }, 3000);
                     }, 500);
                 }
-            }, 100);
+            }, 50); // Slightly faster interval to accommodate more lines
         }
 
         const toggleConsole = () => {
