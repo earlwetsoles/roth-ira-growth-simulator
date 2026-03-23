@@ -403,13 +403,15 @@
             setTimeout(runGlitchEffect, Math.random() * (GLITCH_CONFIG.intervalMax - GLITCH_CONFIG.intervalMin) + GLITCH_CONFIG.intervalMin); 
         } 
 
-        window.addEventListener('DOMContentLoaded', () => {
+        // Start Glitch only after boot
+        function initAppAnimations() {
             const lines = document.querySelectorAll('.typewriter-line');
             lines.forEach(line => {
-                setTimeout(() => { line.classList.add('typing'); }, parseInt(line.getAttribute('data-delay')) || 0);
+                const delay = parseInt(line.getAttribute('data-delay')) || 0;
+                setTimeout(() => { line.classList.add('typing'); }, delay);
             });
-            setTimeout(runGlitchEffect, 2000);
-        });
+            setTimeout(runGlitchEffect, 1000);
+        }
 
         async function initializeData() {
             try {
@@ -449,7 +451,6 @@
         }
 
         playBtn.onclick = async () => {
-            // First time play button is hit, show the artwork widget
             if (artworkFirstShow) {
                 artWidget.style.display = "block";
                 setTimeout(() => { artWidget.style.opacity = "1"; }, 50);
@@ -589,11 +590,14 @@
                         document.getElementById('app-content').style.opacity = '1';
                         document.getElementById('diag-widget').style.opacity = '1';
                         document.getElementById('audio-widget').style.opacity = '1';
-                        // Art widget remains display: none until interaction
+                        
+                        // Begin main app animations here
+                        initAppAnimations();
+                        
                         setInterval(() => { addDiagLine(fakeStatuses[Math.floor(Math.random() * fakeStatuses.length)]); }, 3000);
                     }, 500);
                 }
-            }, 50); // Slightly faster interval to accommodate more lines
+            }, 50);
         }
 
         const toggleConsole = () => {
