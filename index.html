@@ -26,7 +26,7 @@
             --widget-w: 240px;
             --widget-gap: 10px;
             --top-row-h: 135px; 
-            --art-size: 135px; /* Square size to match top-row-h */
+            --art-size: 135px;
         }
 
         body { 
@@ -113,11 +113,7 @@
         @media (min-width: 768px) {
             .widget-box { width: var(--widget-w); right: 2rem; }
             .diag-box { top: 2rem; }
-            
-            /* AUDIO: Reverted fixed size rectangle */
             .audio-box { top: 18rem; right: 2rem; height: var(--top-row-h); width: var(--widget-w); }
-            
-            /* ART: Borderless Square positioned next to audio */
             .art-box-borderless { 
                 position: fixed;
                 top: 18rem; 
@@ -130,8 +126,6 @@
                 display: none;
                 overflow: hidden;
             } 
-            
-            /* VIDEO: Width adjusted to align with square art + rectangle audio */
             .video-widget-box { 
                 top: calc(18rem + var(--top-row-h) + var(--widget-gap)); 
                 right: 2rem; 
@@ -184,7 +178,8 @@
         .console-input-row { display: flex; align-items: center; }
         #console-input { background: transparent; border: none; outline: none; color: var(--terminal-off-white); flex-grow: 1; margin-left: 10px; font-family: 'Space Mono', monospace; }
 
-        .vu-meter-container { display: flex; gap: 2px; height: 16px; align-items: flex-end; margin-top: 8px; padding-top: 4px; border-top: 1px solid #111; }
+        /* Doubled height of VU meter bars to take up dead space */
+        .vu-meter-container { display: flex; gap: 2px; height: 32px; align-items: flex-end; margin-top: 8px; padding-top: 4px; border-top: 1px solid #111; }
         .vu-bar { flex: 1; background: #1a1a1a; height: 2px; transition: height 0.08s ease-out; }
         
         .status-dot { width: 8px; height: 8px; background-color: var(--crimson); border-radius: 9999px; box-shadow: 0 0 8px var(--crimson); animation: pulse 2s infinite; }
@@ -245,6 +240,14 @@
             filter: grayscale(0.4) contrast(1.2);
         }
 
+        /* AUTO-FIT LOG PLAYER: ensure it doesn't crop top/bottom */
+        #video-player {
+            width: 100%;
+            max-height: 80vh;
+            object-fit: contain; 
+            background: #000;
+        }
+
         .diag-entry { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; }
         .diag-entry.type-normal { color: var(--terminal-gray); }
         .diag-entry.type-good { color: var(--terminal-green); }
@@ -285,7 +288,6 @@
         </div>
     </div>
 
-    <!-- AUDIO WIDGET (Maintained Original Rectangle) -->
     <div class="widget-box audio-box" id="audio-widget">
         <div class="widget-header">
             <span class="widget-title">AUDIO</span>
@@ -306,13 +308,11 @@
         <audio id="main-audio" crossorigin="anonymous"></audio>
     </div>
 
-    <!-- METADATA WIDGET (Now Borderless & Square) -->
     <div class="art-box-borderless" id="art-widget">
         <img id="cover-art-img" src="" alt="Cover Art" style="display: none;">
         <div id="art-placeholder" class="text-[8px] opacity-20 flex items-center justify-center h-full bg-[#0a0a0a]">NO_IMG</div>
     </div>
 
-    <!-- VIDEO FEED WIDGET (Width aligned to Audio + Art combined) -->
     <div class="widget-box video-widget-box hidden-widget" id="video-widget">
         <div class="widget-header">
             <span class="widget-title">VIDEO_FEED</span>
@@ -350,12 +350,8 @@
 
             <div class="group typewriter-line" data-delay="3200">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-target">04 / Network</span>
-                <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <a href="https://csfloat.com/stall/76561198136225158" target="_blank" class="link-item glitch-hover-effect py-2 text-sm glitch-target">CSFloat</a>
-                    <a href="https://www.inaturalist.org/observations?place_id=any&user_id=jiwt&verifiable=any" target="_blank" class="link-item glitch-hover-effect py-2 text-sm glitch-target">iNaturalist</a>
-                    <a href="https://letterboxd.com/Jiwt/" target="_blank" class="link-item glitch-hover-effect py-2 text-sm glitch-target">Letterboxd</a>
-                    <a href="https://lighterpack.com/r/lim3hg" target="_blank" class="link-item glitch-hover-effect py-2 text-sm glitch-target">LighterPack</a>
-                    <a href="https://www.twitch.tv/Jiwt" target="_blank" class="link-item glitch-hover-effect py-2 text-sm glitch-target">Twitch</a>
+                <div id="network-links-container" class="flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <!-- Links populated from data/network_links.json -->
                 </div>
             </div>
         </section>
@@ -367,14 +363,13 @@
     </main>
 
     <script>
-        // CONFIG PATHS
         const TRACKS_JSON_URL = "data/tracks.json";
         const FILES_JSON_URL = "data/terminal_files.json";
         const BOOT_JSON_URL = "data/boot_sequence.json";
         const STATUS_JSON_URL = "data/system_status.json";
         const COMMANDS_JSON_URL = "data/commands.json";
+        const NETWORK_LINKS_URL = "data/network_links.json";
 
-        // APP STATE
         let audioTracks = [];
         let playQueue = [];
         let queueCursor = 0;
@@ -434,24 +429,15 @@
             setTimeout(runGlitchEffect, 1000);
         }
 
-        function generateQueue() {
-            playQueue = Array.from({length: audioTracks.length}, (_, i) => i);
-            for (let i = playQueue.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [playQueue[i], playQueue[j]] = [playQueue[j], playQueue[i]];
-            }
-            queueCursor = 0;
-            addDiagLine("SHUFFLE_SEQUENCE_GENERATED", "good");
-        }
-
         async function initializeData() {
             try {
-                const [tRes, fRes, bRes, sRes, cRes] = await Promise.all([
+                const [tRes, fRes, bRes, sRes, cRes, nRes] = await Promise.all([
                     fetch(TRACKS_JSON_URL).then(r => r.json()).catch(() => []),
                     fetch(FILES_JSON_URL).then(r => r.json()).catch(() => ({})),
-                    fetch(BOOT_JSON_URL).then(r => r.json()).catch(() => ["BOOT_ERR: FALLBACK_LOADED"]),
+                    fetch(BOOT_JSON_URL).then(r => r.json()).catch(() => ["BOOT_ERR"]),
                     fetch(STATUS_JSON_URL).then(r => r.json()).catch(() => ["SYS_IDLE"]),
-                    fetch(COMMANDS_JSON_URL).then(r => r.json()).catch(() => ({}))
+                    fetch(COMMANDS_JSON_URL).then(r => r.json()).catch(() => ({})),
+                    fetch(NETWORK_LINKS_URL).then(r => r.json()).catch(() => [])
                 ]);
                 
                 audioTracks = tRes;
@@ -460,6 +446,17 @@
                 systemStatusMessages = sRes;
                 commandRegistry = cRes;
                 
+                // Populating network links dynamically
+                const linkContainer = document.getElementById('network-links-container');
+                nRes.forEach(link => {
+                    const a = document.createElement('a');
+                    a.href = link.url;
+                    a.target = "_blank";
+                    a.className = "link-item glitch-hover-effect py-2 text-sm glitch-target";
+                    a.innerText = link.name;
+                    linkContainer.appendChild(a);
+                });
+
                 if (audioTracks.length > 0) {
                     generateQueue();
                     loadTrack(playQueue[queueCursor]);
@@ -467,9 +464,17 @@
                 addDiagLine("DATA_SYNC_SUCCESS", "good");
                 runBoot();
             } catch (e) { 
-                addDiagLine("DATA_SYNC_ERROR", "bad");
                 runBoot();
             }
+        }
+
+        function generateQueue() {
+            playQueue = Array.from({length: audioTracks.length}, (_, i) => i);
+            for (let i = playQueue.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [playQueue[i], playQueue[j]] = [playQueue[j], playQueue[i]];
+            }
+            queueCursor = 0;
         }
 
         function loadTrack(index) {
@@ -511,10 +516,8 @@
                 artWidget.style.display = "block";
                 setTimeout(() => { artWidget.style.opacity = "1"; }, 50);
                 artworkFirstShow = false;
-                addDiagLine("METADATA_STREAM_VISIBLE");
-                
                 const track = audioTracks[playQueue[queueCursor]];
-                if (track && track.video && track.video.trim() !== "") {
+                if (track && track.video) {
                     videoWidget.classList.remove('hidden-widget');
                     videoWidget.style.opacity = '1';
                 }
@@ -553,7 +556,6 @@
                 mainAudio.play().catch(() => {});
                 if (miniVideo.src) miniVideo.play();
                 playBtn.innerText = "PAUSE";
-                addDiagLine(`QUEUE_STEP: ${queueCursor + 1}/${playQueue.length}`);
             }
         };
 
@@ -567,9 +569,15 @@
             currentTimeDisplay.innerText = `${m}:${s.toString().padStart(2, '0')}`;
         };
 
+        // SEEKBAR SYNC: Moves both audio and video together
         progressArea.onclick = (e) => {
             if (!mainAudio.duration) return;
-            mainAudio.currentTime = ((e.clientX - progressArea.getBoundingClientRect().left) / progressArea.offsetWidth) * mainAudio.duration;
+            const seekTime = ((e.clientX - progressArea.getBoundingClientRect().left) / progressArea.offsetWidth) * mainAudio.duration;
+            mainAudio.currentTime = seekTime;
+            // Sync mini video player if active
+            if (miniVideo.src) {
+                miniVideo.currentTime = seekTime;
+            }
         };
 
         const bars = Array.from({length: 12}, () => {
@@ -584,7 +592,7 @@
                 analyser.getByteFrequencyData(dataArray);
                 bars.forEach((bar, i) => {
                     const val = dataArray[i * 2] || 0;
-                    bar.style.height = Math.max(2, (val / 255) * 12) + 'px';
+                    bar.style.height = Math.max(2, (val / 255) * 32) + 'px'; // Increased multiplier for taller bars
                 });
             }
             requestAnimationFrame(updateVUMeter);
@@ -632,15 +640,6 @@
                             }
                         } else writeToConsole("ERR: FILE_NOT_FOUND");
                         break;
-                    case 'timewarp':
-                        const offset = parseInt(arg);
-                        if (!isNaN(offset)) {
-                            warpOffset += offset;
-                            writeToConsole(`TEMPORAL SHIFT: ${offset}s APPLIED`);
-                        } else {
-                            writeToConsole(`USAGE: ${commandRegistry[cmd].usage}`);
-                        }
-                        break;
                     case 'clear':
                         consoleOutput.innerHTML = '';
                         break;
@@ -652,6 +651,11 @@
                 }
             }
         });
+
+        // Auto-close log player when video finishes
+        videoPlayer.onended = () => {
+            closeVideo();
+        };
 
         function closeVideo() {
             videoPlayer.pause();
