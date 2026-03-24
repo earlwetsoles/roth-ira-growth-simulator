@@ -110,8 +110,10 @@
             .widget-box { width: 240px; right: 2rem; }
             .diag-box { top: 2rem; }
             .audio-box { top: 18rem; }
+            /* Position Art Box */
             .art-box { top: 27.5rem; } 
-            .video-widget-box { top: 40.5rem; }
+            /* Position Video Box to the left of Art Box, same height */
+            .video-widget-box { top: 27.5rem; right: calc(2rem + 250px); }
         }
 
         @media (max-width: 767px) {
@@ -209,8 +211,9 @@
             overflow: hidden;
             position: relative;
         }
-        .art-display { aspect-ratio: 1/1; }
-        .video-display { aspect-ratio: 16/9; }
+        
+        /* Unified height for widgets to keep them aligned */
+        .art-display, .video-display { aspect-ratio: 1/1; }
 
         #cover-art-img {
             width: 100%;
@@ -241,7 +244,6 @@
                 <span id="video-title">STREAMING_LOG...</span>
                 <span onclick="closeVideo()" class="cursor-pointer text-red-700 font-bold glitch-hover-effect">[X] CLOSE</span>
             </div>
-            <!-- Updated: Added 'muted' attribute to the main video player -->
             <video id="video-player" style="width:100%" controls muted></video>
         </div>
     </div>
@@ -286,18 +288,7 @@
         <audio id="main-audio" crossorigin="anonymous"></audio>
     </div>
 
-    <div class="widget-box art-box" id="art-widget">
-        <div class="widget-header">
-            <span class="widget-title">METADATA</span>
-            <span class="opacity-40">IMG_CH</span>
-        </div>
-        <div class="media-container art-display">
-            <img id="cover-art-img" src="" alt="Cover Art" style="display: none;">
-            <div id="art-placeholder" class="text-[8px] opacity-20">NO_IMG_DATA</div>
-        </div>
-    </div>
-
-    <!-- NEW MINI VIDEO WIDGET -->
+    <!-- VIDEO WIDGET (Now positioned left of Metadata on Desktop) -->
     <div class="widget-box video-widget-box hidden-widget" id="video-widget">
         <div class="widget-header">
             <span class="widget-title">VIDEO_FEED</span>
@@ -306,6 +297,18 @@
         <div class="media-container video-display">
             <video id="mini-video-player" muted playsinline loop style="display: none;"></video>
             <div id="video-placeholder" class="text-[8px] opacity-20">SIGNAL_LOST</div>
+        </div>
+    </div>
+
+    <!-- ARTWORK WIDGET -->
+    <div class="widget-box art-box" id="art-widget">
+        <div class="widget-header">
+            <span class="widget-title">METADATA</span>
+            <span class="opacity-40">IMG_CH</span>
+        </div>
+        <div class="media-container art-display">
+            <img id="cover-art-img" src="" alt="Cover Art" style="display: none;">
+            <div id="art-placeholder" class="text-[8px] opacity-20">NO_IMG_DATA</div>
         </div>
     </div>
 
