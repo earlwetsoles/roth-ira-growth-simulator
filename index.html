@@ -23,6 +23,9 @@
             --terminal-gray: #666;
             --terminal-off-white: #eee;
             --terminal-green: #00ff41;
+            --widget-w: 240px;
+            --widget-gap: 10px;
+            --top-row-h: 135px; /* Reverted to original compact height */
         }
 
         body { 
@@ -107,21 +110,27 @@
         .hidden-widget { display: none !important; }
 
         @media (min-width: 768px) {
-            .widget-box { width: 240px; right: 2rem; }
+            .widget-box { width: var(--widget-w); right: 2rem; }
             .diag-box { top: 2rem; }
-            .audio-box { top: 18rem; }
-            /* Position Art Box */
-            .art-box { top: 27.5rem; } 
-            /* Position Video Box to the left of Art Box, same height */
-            .video-widget-box { top: 27.5rem; right: calc(2rem + 250px); }
+            
+            /* TOP ROW: Heights matched and reverted */
+            .audio-box { top: 18rem; right: 2rem; height: var(--top-row-h); }
+            .art-box { top: 18rem; right: calc(2rem + var(--widget-w) + var(--widget-gap)); height: var(--top-row-h); display: none; } 
+            
+            /* BOTTOM ROW: Spans both widgets width */
+            .video-widget-box { 
+                top: calc(18rem + var(--top-row-h) + var(--widget-gap)); 
+                right: 2rem; 
+                width: calc((var(--widget-w) * 2) + var(--widget-gap));
+            }
         }
 
         @media (max-width: 767px) {
             .widget-box { width: 45%; font-size: 8px; padding: 6px; }
             .diag-box { left: 1rem; top: 1rem; height: 110px; }
             .audio-box { right: 1rem; top: 1rem; height: 130px; }
-            .art-box { right: 1rem; top: 10rem; }
-            .video-widget-box { left: 1rem; top: 10rem; }
+            .art-box { right: 1rem; top: 10rem; height: 130px; display: none; }
+            .video-widget-box { left: 1rem; top: 18rem; width: 90%; }
         }
 
         .widget-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; border-bottom: 1px solid #1a1a1a; padding-bottom: 0.25rem; }
@@ -139,11 +148,6 @@
             vertical-align: middle;
             cursor: pointer;
             transition: all 0.2s ease;
-        }
-        
-        .terminal-cursor:hover {
-            background-color: var(--glitch-red);
-            box-shadow: 2px 0 #00ff41, -2px 0 blue;
         }
         
         @keyframes blink { from, to { opacity: 1; } 50% { opacity: 0; } }
@@ -166,7 +170,7 @@
         .console-input-row { display: flex; align-items: center; }
         #console-input { background: transparent; border: none; outline: none; color: var(--terminal-off-white); flex-grow: 1; margin-left: 10px; font-family: 'Space Mono', monospace; }
 
-        .vu-meter-container { display: flex; gap: 2px; height: 20px; align-items: flex-end; margin-top: 10px; padding-top: 6px; border-top: 1px solid #111; }
+        .vu-meter-container { display: flex; gap: 2px; height: 16px; align-items: flex-end; margin-top: 8px; padding-top: 4px; border-top: 1px solid #111; }
         .vu-bar { flex: 1; background: #1a1a1a; height: 2px; transition: height 0.08s ease-out; }
         
         .status-dot { width: 8px; height: 8px; background-color: var(--crimson); border-radius: 9999px; box-shadow: 0 0 8px var(--crimson); animation: pulse 2s infinite; }
@@ -212,8 +216,9 @@
             position: relative;
         }
         
-        /* Unified height for widgets to keep them aligned */
-        .art-display, .video-display { aspect-ratio: 1/1; }
+        /* Adjusted heights to fit the 135px overall widget height */
+        .art-display { height: 100px; width: 100%; }
+        .video-display { aspect-ratio: 16/9; width: 100%; }
 
         #cover-art-img {
             width: 100%;
@@ -268,6 +273,7 @@
         </div>
     </div>
 
+    <!-- AUDIO WIDGET (Reverted Height) -->
     <div class="widget-box audio-box" id="audio-widget">
         <div class="widget-header">
             <span class="widget-title">AUDIO</span>
@@ -288,19 +294,7 @@
         <audio id="main-audio" crossorigin="anonymous"></audio>
     </div>
 
-    <!-- VIDEO WIDGET (Now positioned left of Metadata on Desktop) -->
-    <div class="widget-box video-widget-box hidden-widget" id="video-widget">
-        <div class="widget-header">
-            <span class="widget-title">VIDEO_FEED</span>
-            <span class="opacity-40">MP4_STREAM</span>
-        </div>
-        <div class="media-container video-display">
-            <video id="mini-video-player" muted playsinline loop style="display: none;"></video>
-            <div id="video-placeholder" class="text-[8px] opacity-20">SIGNAL_LOST</div>
-        </div>
-    </div>
-
-    <!-- ARTWORK WIDGET -->
+    <!-- METADATA WIDGET (Matched Height) -->
     <div class="widget-box art-box" id="art-widget">
         <div class="widget-header">
             <span class="widget-title">METADATA</span>
@@ -309,6 +303,18 @@
         <div class="media-container art-display">
             <img id="cover-art-img" src="" alt="Cover Art" style="display: none;">
             <div id="art-placeholder" class="text-[8px] opacity-20">NO_IMG_DATA</div>
+        </div>
+    </div>
+
+    <!-- VIDEO FEED WIDGET (Matched Width of combined top row) -->
+    <div class="widget-box video-widget-box hidden-widget" id="video-widget">
+        <div class="widget-header">
+            <span class="widget-title">VIDEO_FEED</span>
+            <span class="opacity-40">MP4_STREAM_16:9</span>
+        </div>
+        <div class="media-container video-display">
+            <video id="mini-video-player" muted playsinline loop style="display: none;"></video>
+            <div id="video-placeholder" class="text-[8px] opacity-20">SIGNAL_LOST</div>
         </div>
     </div>
 
@@ -371,7 +377,6 @@
         let audioCtx, analyser, source, dataArray, isAudioCtxInit = false;
         let artworkFirstShow = true;
         
-        // DYNAMIC DATA
         let virtualFiles = {};
         let bootSequenceData = [];
         let systemStatusMessages = [];
@@ -467,7 +472,6 @@
             trackNameDisplay.innerText = track.name.toUpperCase();
             mainAudio.src = track.url;
             
-            // Cover Art Logic
             if (track.artwork && track.artwork.trim() !== "") {
                 artImg.src = track.artwork;
                 artImg.style.display = "block";
@@ -477,14 +481,15 @@
                 artPlaceholder.style.display = "block";
             }
 
-            // Video Widget Logic
             if (track.video && track.video.trim() !== "") {
                 miniVideo.src = track.video;
                 miniVideo.style.display = 'block';
                 videoPlaceholder.style.display = 'none';
-                videoWidget.classList.remove('hidden-widget');
-                videoWidget.style.opacity = '1';
-                if (!mainAudio.paused) miniVideo.play();
+                if (!artworkFirstShow) {
+                    videoWidget.classList.remove('hidden-widget');
+                    videoWidget.style.opacity = '1';
+                    if (!mainAudio.paused) miniVideo.play();
+                }
             } else {
                 videoWidget.classList.add('hidden-widget');
                 videoWidget.style.opacity = '0';
@@ -501,6 +506,12 @@
                 setTimeout(() => { artWidget.style.opacity = "1"; }, 50);
                 artworkFirstShow = false;
                 addDiagLine("METADATA_STREAM_VISIBLE");
+                
+                const track = audioTracks[playQueue[queueCursor]];
+                if (track && track.video && track.video.trim() !== "") {
+                    videoWidget.classList.remove('hidden-widget');
+                    videoWidget.style.opacity = '1';
+                }
             }
 
             if (!isAudioCtxInit) {
@@ -567,7 +578,7 @@
                 analyser.getByteFrequencyData(dataArray);
                 bars.forEach((bar, i) => {
                     const val = dataArray[i * 2] || 0;
-                    bar.style.height = Math.max(2, (val / 255) * 18) + 'px';
+                    bar.style.height = Math.max(2, (val / 255) * 12) + 'px';
                 });
             }
             requestAnimationFrame(updateVUMeter);
