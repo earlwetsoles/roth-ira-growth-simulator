@@ -178,7 +178,6 @@
         .console-input-row { display: flex; align-items: center; }
         #console-input { background: transparent; border: none; outline: none; color: var(--terminal-off-white); flex-grow: 1; margin-left: 10px; font-family: 'Space Mono', monospace; }
 
-        /* Doubled height of VU meter bars to take up dead space */
         .vu-meter-container { display: flex; gap: 2px; height: 32px; align-items: flex-end; margin-top: 8px; padding-top: 4px; border-top: 1px solid #111; }
         .vu-bar { flex: 1; background: #1a1a1a; height: 2px; transition: height 0.08s ease-out; }
         
@@ -240,7 +239,6 @@
             filter: grayscale(0.4) contrast(1.2);
         }
 
-        /* AUTO-FIT LOG PLAYER: ensure it doesn't crop top/bottom */
         #video-player {
             width: 100%;
             max-height: 80vh;
@@ -351,7 +349,6 @@
             <div class="group typewriter-line" data-delay="3200">
                 <span class="text-[10px] block mb-2 opacity-40 uppercase tracking-widest glitch-target">04 / Network</span>
                 <div id="network-links-container" class="flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <!-- Links populated from data/network_links.json -->
                 </div>
             </div>
         </section>
@@ -446,7 +443,6 @@
                 systemStatusMessages = sRes;
                 commandRegistry = cRes;
                 
-                // Populating network links dynamically
                 const linkContainer = document.getElementById('network-links-container');
                 nRes.forEach(link => {
                     const a = document.createElement('a');
@@ -569,12 +565,10 @@
             currentTimeDisplay.innerText = `${m}:${s.toString().padStart(2, '0')}`;
         };
 
-        // SEEKBAR SYNC: Moves both audio and video together
         progressArea.onclick = (e) => {
             if (!mainAudio.duration) return;
             const seekTime = ((e.clientX - progressArea.getBoundingClientRect().left) / progressArea.offsetWidth) * mainAudio.duration;
             mainAudio.currentTime = seekTime;
-            // Sync mini video player if active
             if (miniVideo.src) {
                 miniVideo.currentTime = seekTime;
             }
@@ -592,7 +586,7 @@
                 analyser.getByteFrequencyData(dataArray);
                 bars.forEach((bar, i) => {
                     const val = dataArray[i * 2] || 0;
-                    bar.style.height = Math.max(2, (val / 255) * 32) + 'px'; // Increased multiplier for taller bars
+                    bar.style.height = Math.max(2, (val / 255) * 32) + 'px';
                 });
             }
             requestAnimationFrame(updateVUMeter);
@@ -621,6 +615,16 @@
                 }
 
                 switch(cmd) {
+                    case 'intro':
+                        videoTitle.innerText = "SYSTEM_INTRO_SEQUENCE";
+                        videoPlayer.src = "log clips/intro_sequence.mp4"; 
+                        videoOverlay.style.display = 'flex';
+                        videoPlayer.play();
+                        mainAudio.pause();
+                        if (miniVideo.src) miniVideo.pause();
+                        playBtn.innerText = "PLAY";
+                        writeToConsole("EXEC_DIRECT_STREAM: intro_sequence.mp4", "var(--terminal-green)");
+                        break;
                     case 'list':
                         Object.keys(virtualFiles).forEach(f => writeToConsole(`- ${f}`));
                         break;
@@ -652,7 +656,6 @@
             }
         });
 
-        // Auto-close log player when video finishes
         videoPlayer.onended = () => {
             closeVideo();
         };
