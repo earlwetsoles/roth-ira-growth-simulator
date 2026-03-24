@@ -258,10 +258,10 @@
     "artwork": "https://f4.bcbits.com/img/a0410702129_10.jpg",
     "video": "musicvideos/peterlugervideo.mp4"
   },
-    {
+  {
     "name": "RIOT",
     "url": "audio/RIOT - HUGH MASEKELA.mp3",
-      "artwork": "https://images.genius.com/e85e00f81ca0da972f29bb561fb2b7bc.600x600x1.jpg"
+    "artwork": "https://images.genius.com/e85e00f81ca0da972f29bb561fb2b7bc.600x600x1.jpg"
   },
     {
     "name": "LONG LIVE JULIO",
@@ -272,5 +272,10 @@
     "name": "SEACOAST",
     "url": "audio/11. Archie Whitewater - Seacoast.mp3",
     "artwork": "https://i.scdn.co/image/ab67616d0000b273c0a2ab23c9647387fb4da61a"
+  },
+  {
+    "name": "Westside Gunn & Conway on Shade 45",
+    "url": "audio/SHADE45conwayWSG.mp3",
+    "video": "musicvideos/SHADE45conwayWSG.mp4"
   }
 ]
