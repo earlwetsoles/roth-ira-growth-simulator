@@ -615,15 +615,19 @@
                 }
 
                 switch(cmd) {
-                    case 'intro':
-                        videoTitle.innerText = "SYSTEM_INTRO_SEQUENCE";
+                    case 'timewarp':
+                        videoTitle.innerText = "TIMEWARP_SEQUENCE";
+                        // Pointing to your specific video in 'log clips'
                         videoPlayer.src = "log clips/intro_sequence.mp4"; 
                         videoOverlay.style.display = 'flex';
                         videoPlayer.play();
+                        
+                        // Pause existing audio/video background feeds
                         mainAudio.pause();
                         if (miniVideo.src) miniVideo.pause();
                         playBtn.innerText = "PLAY";
-                        writeToConsole("EXEC_DIRECT_STREAM: intro_sequence.mp4", "var(--terminal-green)");
+                        
+                        writeToConsole("INITIATING_TIMEWARP...", "var(--terminal-green)");
                         break;
                     case 'list':
                         Object.keys(virtualFiles).forEach(f => writeToConsole(`- ${f}`));
