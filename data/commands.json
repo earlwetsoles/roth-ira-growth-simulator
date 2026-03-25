@@ -1,25 +1,21 @@
 {
-  "list": {
-    "description": "List all accessible directory files",
-    "action": "system_list"
+  "list": { 
+    "description": "List all accessible directory files" 
   },
-  "open": {
-    "description": "Open a specific file",
-    "usage": "OPEN [FILENAME]",
-    "action": "open"
+  "open": { 
+    "description": "Open a specific file", 
+    "usage": "OPEN [FILENAME]" 
   },
-  "timewarp": {
-    "description": "Time travel one year. Whether it's into the past or future remains unknown",
+  "timewarp": { 
+    "description": "Time travel one year",
     "action": "video",
     "value": "log clips/oneyear.mp4",
     "title": "TIMEWARP_SEQUENCE"
   },
-  "help": {
-    "description": "Display available commands",
-    "action": "system_help"
+  "help": { 
+    "description": "Display available commands" 
   },
-  "clear": {
-    "description": "Clears all lines of text in the prompt",
-    "action": "system_clear"
+  "clear": { 
+    "description": "Clears all lines of text in the prompt" 
   }
 }
