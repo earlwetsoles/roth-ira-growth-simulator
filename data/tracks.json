@@ -289,5 +289,11 @@
     "url": "audio/HOWuBUMIN.mp3",
     "artwork": "https://i1.sndcdn.com/artworks-p5hX0N8w5vsGSzPr-pfkYjg-t500x500.jpg",
     "video": "musicvideos/HOWuBUMIN.mp4"
+  },
+  {
+    "name": "50 BALL JAMAL",
+    "url": "audio/50 BALL JAMAL.mp3",
+    "artwork": "https://i.scdn.co/image/ab67616d00001e02576bc61d30c605e07def34b0",
+    "video": "musicvideos/50BALLJAMAL.mp4"
   }
 ]
