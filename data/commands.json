@@ -1,6 +1,6 @@
 {
   "list": { 
-    "description": "List all accessible directory files" 
+    "description": "List all files" 
   },
   "open": { 
     "description": "Open a specific file", 
@@ -16,6 +16,6 @@
     "description": "Display available commands" 
   },
   "clear": { 
-    "description": "Clears all lines of text in the prompt" 
+    "description": "Erase all text in the command prompt" 
   }
 }
