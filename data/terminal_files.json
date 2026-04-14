@@ -7,6 +7,10 @@
 "type": "external",
 "url": "https://youtu.be/_lQGAltQ5Jg?si=5HC7g07gLzcvIDAK&t=4470"
 },
+"chill_gig.log": {
+"type": "external",
+"url": "https://www.youtube.com/watch?v=ZVKHt9keAhE&list=FLl-rijlbCE87N7NJ-mAhxDw&index=231"
+},
 "come_with.log": {
 "type": "video",
 "url": "log clips/come%20with.mp4"
@@ -27,9 +31,17 @@
 "type": "video",
 "url": "log clips/BurgerPeterson.mp4"
 },
+"nacht.log": {
+"type": "video",
+"url": "log clips/NACHTsong.mp4"
+},
 "peptides.log": {
 "type": "external",
 "url": "https://www.youtube.com/live/-ncjnYkkCmo?si=j298dVo9jOXjmZrS&t=6280"
+},
+"HML.log": {
+"type": "video",
+"url": "log clips/HML.mp4"
 },
 "who_is_he.log": {
 "type": "video",
