@@ -32,8 +32,8 @@
 "url": "log clips/BurgerPeterson.mp4"
 },
 "nacht.log": {
-"type": "video",
-"url": "log clips/NACHTsong.mp4"
+"type": "external",
+"url": "https://www.youtube.com/watch?v=34jwX1a236o"
 },
 "peptides.log": {
 "type": "external",
